@@ -1,0 +1,20 @@
+[project]
+name = "md-spreadsheet-parser"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "f-y" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "build>=1.3.0",
+    "pytest>=9.0.1",
+]

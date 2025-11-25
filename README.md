@@ -120,11 +120,39 @@ if sheet:
 #### Simple Scan Interface
 If you want to extract *all* tables from a document regardless of its structure (ignoring sheets and headers), use `scan_tables`.
 
-```python
-from md_spreadsheet_parser import scan_tables
+You can also use `MultiTableParsingSchema` with `scan_tables` to extract table names and descriptions even without a root marker or sheets.
 
-# Returns a flat list of all tables found in the text
-tables = scan_tables(markdown_text)
+```python
+from md_spreadsheet_parser import scan_tables, MultiTableParsingSchema
+
+markdown = """
+### Users
+List of users.
+
+| Name | Age |
+| ---- | --- |
+| Alice| 30  |
+
+### Products
+List of products.
+
+| Item | Price |
+| ---- | ----- |
+| Apple| 1.00  |
+"""
+
+# Configure schema to capture table headers and descriptions
+schema = MultiTableParsingSchema(
+    table_header_level=3,
+    capture_description=True
+)
+
+tables = scan_tables(markdown, schema)
+
+for table in tables:
+    print(f"Table: {table.name}")
+    print(f"Desc: {table.description}")
+    print(table.rows)
 ```
 
 #### JSON / Dict Export

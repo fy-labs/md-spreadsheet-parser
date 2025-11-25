@@ -106,10 +106,10 @@ def parse_table(text: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> ParseResul
     )
 
 
-def parse_sheet(text: str, name: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> Sheet:
+def _extract_tables(text: str, schema: ParsingSchema) -> list[Table]:
     """
-    Parses a sheet content which may contain multiple tables.
-    Supports splitting by table headers and extracting descriptions if configured.
+    Helper function to extract tables from text based on schema configuration.
+    Handles both header-based splitting (if table_header_level is set) and blank-line splitting.
     """
     tables: list[Table] = []
 
@@ -135,8 +135,6 @@ def parse_sheet(text: str, name: str, schema: ParsingSchema = DEFAULT_SCHEMA) ->
 
             if capture_description:
                 # Find start of table (first line with pipe)
-                # We need to be careful not to match description lines that might have pipes but aren't table rows?
-                # For now, assume first line with column_separator is start of table.
                 block_lines = block_content.split("\n")
                 table_start_idx = -1
                 for idx, line in enumerate(block_lines):
@@ -203,7 +201,15 @@ def parse_sheet(text: str, name: str, schema: ParsingSchema = DEFAULT_SCHEMA) ->
                             metadata=parse_res.metadata,
                         )
                     )
+    return tables
 
+
+def parse_sheet(text: str, name: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> Sheet:
+    """
+    Parses a sheet content which may contain multiple tables.
+    Supports splitting by table headers and extracting descriptions if configured.
+    """
+    tables = _extract_tables(text, schema)
     return Sheet(name=name, tables=tables)
 
 
@@ -250,31 +256,8 @@ def parse_workbook(text: str, schema: MultiTableParsingSchema) -> Workbook:
 
 def scan_tables(text: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> list[Table]:
     """
-    Scans the entire text for tables, ignoring hierarchy and headers.
-    Returns a flat list of all found tables.
+    Scans the entire text for tables.
+    If schema is configured with table_header_level, it attempts to extract named tables and descriptions.
+    Otherwise, it ignores hierarchy and headers, returning a flat list of all found tables.
     """
-    # Split by blank lines (2 or more newlines) to separate blocks
-    blocks = re.split(r"\n\s*\n", text.strip())
-
-    tables: list[Table] = []
-
-    for block in blocks:
-        if not block.strip():
-            continue
-
-        # Heuristic: A block is a table if it contains the column separator
-        if schema.column_separator in block:
-            parse_res = parse_table(block, schema)
-            # Only add if it has content
-            if parse_res.headers or parse_res.rows:
-                tables.append(
-                    Table(
-                        name=None,
-                        description=None,
-                        headers=parse_res.headers,
-                        rows=parse_res.rows,
-                        metadata=parse_res.metadata,
-                    )
-                )
-
-    return tables
+    return _extract_tables(text, schema)

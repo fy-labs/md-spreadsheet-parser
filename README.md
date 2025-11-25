@@ -1,11 +1,13 @@
 # Markdown Spreadsheet Parser
 
 A lightweight, pure Python library for parsing Markdown tables into structured data.
-Designed to be portable and run in WebAssembly environments (like Pyodide in VS Code extensions).
+It provides zero-dependency parsing with support for multiple tables, configurable schemas, and JSON-friendly output.
+
+[**📚 Documentation**](https://f-y.github.io/md-spreadsheet-parser/)
 
 ## Features
 
-- **Pure Python**: Zero dependencies, runs anywhere Python runs (including WASM).
+- **Pure Python**: Zero dependencies, runs anywhere Python runs.
 - **Structured Output**: Converts Markdown tables into JSON-friendly objects with headers and rows.
 - **Multi-Table Support**: Can parse multiple tables (sheets) from a single file using a specific structure.
 - **Configurable**: Supports different table styles via schemas.

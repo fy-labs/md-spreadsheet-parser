@@ -71,3 +71,29 @@ md-spreadsheet-parser/
 ├── pyproject.toml        # Project configuration
 └── DEVELOPMENT.md        # This file
 ```
+
+## Publishing to PyPI
+
+This project uses `uv` for building and publishing.
+
+1.  **Prerequisites**:
+    *   Create an account on [PyPI](https://pypi.org/).
+    *   Create an API Token in your PyPI account settings.
+
+2.  **Build the Package**:
+    ```bash
+    uv build
+    ```
+
+3.  **Publish**:
+    ```bash
+    # Using uv (recommended)
+    uv publish --token <your-pypi-token>
+
+    # Or using twine (traditional)
+    # pip install twine
+    # twine upload dist/*
+    ```
+
+    *Note: For the first release, you might want to try [TestPyPI](https://test.pypi.org/) first.*
+

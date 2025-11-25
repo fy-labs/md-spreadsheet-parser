@@ -5,7 +5,8 @@ from .schemas import (
     DEFAULT_SCHEMA, 
     Sheet, 
     Workbook, 
-    MultiTableParsingSchema
+    MultiTableParsingSchema,
+    Table
 )
 
 __all__ = [
@@ -17,5 +18,6 @@ __all__ = [
     "DEFAULT_SCHEMA",
     "Sheet",
     "Workbook",
-    "MultiTableParsingSchema"
+    "MultiTableParsingSchema",
+    "Table"
 ]

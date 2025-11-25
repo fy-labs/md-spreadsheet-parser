@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Dict, List, Optional, TypedDict
 
 @dataclass(frozen=True)
 class ParsingSchema:
@@ -21,12 +21,54 @@ class ParseResult:
     """
     Structured result of the parsing operation.
     """
-    headers: Optional[list[str]]
-    rows: list[list[str]]
-    metadata: dict
+    headers: Optional[List[str]]
+    rows: List[List[str]]
+    metadata: Dict[str, Any]
+
+
 
 # Default schema for standard Markdown tables (GFM style)
 DEFAULT_SCHEMA = ParsingSchema()
+
+class TableJSON(TypedDict):
+    name: Optional[str]
+    description: Optional[str]
+    headers: Optional[List[str]]
+    rows: List[List[str]]
+    metadata: Dict[str, Any]
+
+class SheetJSON(TypedDict):
+    name: str
+    tables: List[TableJSON]
+
+class WorkbookJSON(TypedDict):
+    sheets: List[SheetJSON]
+
+@dataclass(frozen=True)
+class Table:
+    """
+    Represents a parsed table with optional metadata.
+    """
+    headers: Optional[List[str]]
+    rows: List[List[str]]
+    name: Optional[str] = None
+    description: Optional[str] = None
+    metadata: Dict[str, Any] = None
+
+    def __post_init__(self):
+        if self.metadata is None:
+            # Hack to allow default value for mutable type in frozen dataclass
+            object.__setattr__(self, 'metadata', {})
+
+    @property
+    def json(self) -> TableJSON:
+        return {
+            "name": self.name,
+            "description": self.description,
+            "headers": self.headers,
+            "rows": self.rows,
+            "metadata": self.metadata
+        }
 
 @dataclass(frozen=True)
 class Sheet:
@@ -34,14 +76,27 @@ class Sheet:
     Represents a single sheet containing tables.
     """
     name: str
-    tables: list[ParseResult]
+    tables: List[Table]
+
+    @property
+    def json(self) -> SheetJSON:
+        return {
+            "name": self.name,
+            "tables": [t.json for t in self.tables]
+        }
 
 @dataclass(frozen=True)
 class Workbook:
     """
     Represents a collection of sheets (multi-table output).
     """
-    sheets: list[Sheet]
+    sheets: List[Sheet]
+
+    @property
+    def json(self) -> WorkbookJSON:
+        return {
+            "sheets": [s.json for s in self.sheets]
+        }
 
 @dataclass(frozen=True)
 class MultiTableParsingSchema(ParsingSchema):
@@ -50,4 +105,7 @@ class MultiTableParsingSchema(ParsingSchema):
     """
     root_marker: str = "# Tables"
     sheet_header_level: int = 2  # e.g. ## SheetName
+    table_header_level: Optional[int] = None  # e.g. ### TableName
+    capture_description: bool = False
+
 

@@ -1,6 +1,6 @@
 from typing import List, Tuple, Optional
 import re
-from .schemas import ParsingSchema, ParseResult, DEFAULT_SCHEMA, Sheet, Workbook, MultiTableParsingSchema
+from .schemas import ParsingSchema, ParseResult, DEFAULT_SCHEMA, Sheet, Workbook, MultiTableParsingSchema, Table
 
 def clean_cell(cell_content: str, schema: ParsingSchema) -> str:
     """
@@ -98,24 +98,97 @@ def parse_table(text: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> ParseResul
 
 def parse_sheet(text: str, name: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> Sheet:
     """
-    Parses a sheet content which may contain multiple tables separated by blank lines.
+    Parses a sheet content which may contain multiple tables.
+    Supports splitting by table headers and extracting descriptions if configured.
     """
-    # Split by blank lines (2 or more newlines) to separate blocks
-    # We use regex to split by one or more empty lines
-    blocks = re.split(r'\n\s*\n', text.strip())
+    tables: List[Table] = []
     
-    tables: List[ParseResult] = []
+    # Check for MultiTableParsingSchema features
+    table_header_level = getattr(schema, 'table_header_level', None)
+    capture_description = getattr(schema, 'capture_description', False)
     
-    for block in blocks:
-        if not block.strip():
-            continue
+    if table_header_level is not None:
+        # Split by table header
+        header_prefix = "#" * table_header_level + " "
+        
+        lines = text.split('\n')
+        current_table_name: Optional[str] = None
+        current_table_lines: List[str] = []
+        
+        def process_table_block(t_name: str, t_lines: List[str]):
+            if not t_lines:
+                return
             
-        # Heuristic: A block is a table if it contains the column separator
-        if schema.column_separator in block:
-            table = parse_table(block, schema)
-            # Only add if it has content
-            if table.headers or table.rows:
-                tables.append(table)
+            block_content = "\n".join(t_lines)
+            description = None
+            table_content = block_content
+            
+            if capture_description:
+                # Find start of table (first line with pipe)
+                # We need to be careful not to match description lines that might have pipes but aren't table rows?
+                # For now, assume first line with column_separator is start of table.
+                block_lines = block_content.split('\n')
+                table_start_idx = -1
+                for idx, line in enumerate(block_lines):
+                    if schema.column_separator in line:
+                        table_start_idx = idx
+                        break
+                
+                if table_start_idx > 0:
+                    description = "\n".join(block_lines[:table_start_idx]).strip()
+                    if not description:
+                        description = None
+                    table_content = "\n".join(block_lines[table_start_idx:])
+                elif table_start_idx == 0:
+                    description = None
+                    table_content = block_content
+                else:
+                    # No table found
+                    return
+
+            parse_res = parse_table(table_content, schema)
+            if parse_res.headers or parse_res.rows:
+                tables.append(Table(
+                    name=t_name,
+                    description=description,
+                    headers=parse_res.headers,
+                    rows=parse_res.rows,
+                    metadata=parse_res.metadata
+                ))
+
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith(header_prefix):
+                if current_table_name is not None:
+                    process_table_block(current_table_name, current_table_lines)
+                
+                current_table_name = stripped[len(header_prefix):].strip()
+                current_table_lines = []
+            else:
+                if current_table_name is not None:
+                    current_table_lines.append(line)
+        
+        if current_table_name is not None:
+            process_table_block(current_table_name, current_table_lines)
+            
+    else:
+        # Legacy behavior: Split by blank lines
+        blocks = re.split(r'\n\s*\n', text.strip())
+        
+        for block in blocks:
+            if not block.strip():
+                continue
+                
+            if schema.column_separator in block:
+                parse_res = parse_table(block, schema)
+                if parse_res.headers or parse_res.rows:
+                    tables.append(Table(
+                        name=None,
+                        description=None,
+                        headers=parse_res.headers,
+                        rows=parse_res.rows,
+                        metadata=parse_res.metadata
+                    ))
                 
     return Sheet(name=name, tables=tables)
 
@@ -127,12 +200,8 @@ def parse_workbook(text: str, schema: MultiTableParsingSchema) -> Workbook:
     # Find the root marker
     marker_index = text.find(schema.root_marker)
     if marker_index == -1:
-        # Marker not found, return empty workbook or raise error?
-        # For now, return empty workbook as it doesn't match the format
         return Workbook(sheets=[])
         
-    # Slice the text to start from the marker
-    # We add the length of marker to skip it, but we might want to keep newlines after it
     content_start = marker_index + len(schema.root_marker)
     content = text[content_start:]
     
@@ -147,21 +216,16 @@ def parse_workbook(text: str, schema: MultiTableParsingSchema) -> Workbook:
     for line in lines:
         stripped = line.strip()
         if stripped.startswith(header_prefix):
-            # New sheet found
-            # Save previous sheet
             if current_sheet_name:
                 sheet_content = "\n".join(current_sheet_lines)
                 sheets.append(parse_sheet(sheet_content, current_sheet_name, schema))
             
-            # Start new sheet
             current_sheet_name = stripped[len(header_prefix):].strip()
             current_sheet_lines = []
         else:
-            # Add to current sheet
             if current_sheet_name:
                 current_sheet_lines.append(line)
                 
-    # Add the last sheet
     if current_sheet_name:
         sheet_content = "\n".join(current_sheet_lines)
         sheets.append(parse_sheet(sheet_content, current_sheet_name, schema))

@@ -155,3 +155,72 @@ def test_workbook_json_structure():
     data = workbook_to_dict(workbook)
     assert data["sheets"][0]["name"] == "MySheet"
     assert data["sheets"][0]["tables"][0]["headers"] == ["A"]
+
+def test_table_metadata_extraction():
+    markdown = """
+# Tables
+
+## Sheet 1
+
+### Table A
+This is a description for Table A.
+It spans multiple lines.
+
+| Col 1 |
+| ----- |
+| Val 1 |
+
+### Table B
+
+| Col 2 |
+| ----- |
+| Val 2 |
+"""
+    schema = MultiTableParsingSchema(
+        table_header_level=3,
+        capture_description=True
+    )
+    workbook = parse_workbook(markdown, schema)
+    
+    assert len(workbook.sheets) == 1
+    sheet = workbook.sheets[0]
+    assert len(sheet.tables) == 2
+    
+    table_a = sheet.tables[0]
+    assert table_a.name == "Table A"
+    assert table_a.description == "This is a description for Table A.\nIt spans multiple lines."
+    assert table_a.headers == ["Col 1"]
+    
+    table_b = sheet.tables[1]
+    assert table_b.name == "Table B"
+    assert table_b.description is None
+    assert table_b.headers == ["Col 2"]
+
+def test_json_property():
+    markdown = """
+# Tables
+
+## Sheet 1
+
+### Table A
+Desc
+
+| A |
+| - |
+| 1 |
+"""
+    schema = MultiTableParsingSchema(
+        table_header_level=3,
+        capture_description=True
+    )
+    workbook = parse_workbook(markdown, schema)
+    
+    json_output = workbook.json
+    
+    assert json_output["sheets"][0]["name"] == "Sheet 1"
+    table_json = json_output["sheets"][0]["tables"][0]
+    assert table_json["name"] == "Table A"
+    assert table_json["description"] == "Desc"
+    assert table_json["headers"] == ["A"]
+    assert table_json["rows"] == [["1"]]
+

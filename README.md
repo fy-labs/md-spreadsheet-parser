@@ -46,6 +46,8 @@ print(result.rows)
 Use `parse_workbook` to parse a file containing multiple sheets.
 **Note**: The file must start with the root marker `# Tables` (configurable).
 
+You can also extract table names and descriptions by configuring the schema.
+
 ```python
 from md_spreadsheet_parser import parse_workbook, MultiTableParsingSchema
 
@@ -54,27 +56,34 @@ markdown = """
 
 ## Sheet 1
 
-| ID | Item |
-| -- | ---- |
-| 1  | Apple|
-
-## Sheet 2
+### Users Table
+List of active users.
 
 | ID | User |
 | -- | ---- |
 | 99 | Bob  |
 """
 
-# Default schema uses "# Tables" as root marker
-schema = MultiTableParsingSchema()
+# Configure schema to capture table headers (level 3) and descriptions
+schema = MultiTableParsingSchema(
+    table_header_level=3,
+    capture_description=True
+)
 workbook = parse_workbook(markdown, schema)
 
+# Access structured data
 for sheet in workbook.sheets:
     print(f"Sheet: {sheet.name}")
     for table in sheet.tables:
-        print(table.headers)
-        print(table.rows)
+        print(f"  Table: {table.name}")
+        print(f"  Description: {table.description}")
+        print(f"  Headers: {table.headers}")
+
+# Export to JSON-compatible dict
+import json
+print(json.dumps(workbook.json, indent=2))
 ```
+
 
 ## License
 

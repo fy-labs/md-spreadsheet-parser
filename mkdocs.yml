@@ -1,0 +1,26 @@
+site_name: Markdown Spreadsheet Parser
+site_description: A lightweight, pure Python library for parsing Markdown tables.
+site_url: https://f-y.github.io/md-spreadsheet-parser/
+repo_url: https://github.com/f-y/md-spreadsheet-parser
+repo_name: f-y/md-spreadsheet-parser
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_root_heading: true
+            show_source: true
+
+nav:
+  - Home: index.md
+  - API Reference: api.md

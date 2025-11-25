@@ -120,7 +120,35 @@ if sheet:
 #### Simple Scan Interface
 If you want to extract *all* tables from a document regardless of its structure (ignoring sheets and headers), use `scan_tables`.
 
-You can also use `MultiTableParsingSchema` with `scan_tables` to extract table names and descriptions even without a root marker or sheets.
+**Example 1: Basic Scanning**
+Extract all tables from a text, ignoring headers and other content.
+
+```python
+from md_spreadsheet_parser import scan_tables
+
+markdown = """
+Some introductory text...
+
+| A | B |
+| - | - |
+| 1 | 2 |
+
+More text...
+
+| C |
+| - |
+| 3 |
+"""
+
+# Returns a flat list of all tables found
+tables = scan_tables(markdown)
+
+print(len(tables)) # 2
+print(tables[0].headers) # ['A', 'B']
+```
+
+**Example 2: Metadata Extraction (Flat File)**
+You can use `MultiTableParsingSchema` with `scan_tables` to extract table names and descriptions even without a root marker or sheets. This is useful for flat Markdown files.
 
 ```python
 from md_spreadsheet_parser import scan_tables, MultiTableParsingSchema
@@ -150,9 +178,33 @@ schema = MultiTableParsingSchema(
 tables = scan_tables(markdown, schema)
 
 for table in tables:
-    print(f"Table: {table.name}")
-    print(f"Desc: {table.description}")
+    print(f"Table: {table.name}")        # "Users", "Products"
+    print(f"Desc: {table.description}")  # "List of users.", "List of products."
     print(table.rows)
+```
+
+**Example 3: Mixed Content Handling**
+`scan_tables` is robust against mixed content. It will identify tables based on the schema (column separator) and ignore other text blocks unless configured to capture them as descriptions.
+
+```python
+markdown = """
+# Title
+Introduction paragraph.
+
+| Col 1 |
+| ----- |
+| Val 1 |
+
+> Blockquote that is not a table.
+
+| Col 2 |
+| ----- |
+| Val 2 |
+"""
+
+tables = scan_tables(markdown)
+# tables[0] -> Table with header ['Col 1']
+# tables[1] -> Table with header ['Col 2']
 ```
 
 #### JSON / Dict Export

@@ -231,3 +231,32 @@ def parse_workbook(text: str, schema: MultiTableParsingSchema) -> Workbook:
         sheets.append(parse_sheet(sheet_content, current_sheet_name, schema))
         
     return Workbook(sheets=sheets)
+
+def scan_tables(text: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> List[Table]:
+    """
+    Scans the entire text for tables, ignoring hierarchy and headers.
+    Returns a flat list of all found tables.
+    """
+    # Split by blank lines (2 or more newlines) to separate blocks
+    blocks = re.split(r'\n\s*\n', text.strip())
+    
+    tables: List[Table] = []
+    
+    for block in blocks:
+        if not block.strip():
+            continue
+            
+        # Heuristic: A block is a table if it contains the column separator
+        if schema.column_separator in block:
+            parse_res = parse_table(block, schema)
+            # Only add if it has content
+            if parse_res.headers or parse_res.rows:
+                tables.append(Table(
+                    name=None,
+                    description=None,
+                    headers=parse_res.headers,
+                    rows=parse_res.rows,
+                    metadata=parse_res.metadata
+                ))
+                
+    return tables

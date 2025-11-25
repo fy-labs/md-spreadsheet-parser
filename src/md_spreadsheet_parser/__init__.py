@@ -1,4 +1,4 @@
-from .core import parse_table, parse_sheet, parse_workbook
+from .core import parse_table, parse_sheet, parse_workbook, scan_tables
 from .schemas import (
     ParsingSchema, 
     ParseResult, 
@@ -13,6 +13,7 @@ __all__ = [
     "parse_table", 
     "parse_sheet", 
     "parse_workbook",
+    "scan_tables",
     "ParsingSchema", 
     "ParseResult", 
     "DEFAULT_SCHEMA",

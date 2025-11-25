@@ -1,7 +1,9 @@
+
 import json
 from md_spreadsheet_parser import (
     parse_table, 
     parse_workbook, 
+    scan_tables,
     DEFAULT_SCHEMA, 
     MultiTableParsingSchema,
     Workbook
@@ -223,4 +225,74 @@ Desc
     assert table_json["description"] == "Desc"
     assert table_json["headers"] == ["A"]
     assert table_json["rows"] == [["1"]]
+
+def test_scan_tables():
+    markdown = """
+Some text.
+
+| A | B |
+| - | - |
+| 1 | 2 |
+
+More text.
+
+| C |
+| - |
+| 3 |
+"""
+    tables = scan_tables(markdown)
+    assert len(tables) == 2
+    assert tables[0].headers == ["A", "B"]
+    assert tables[1].headers == ["C"]
+
+def test_lookup_api():
+    markdown = """
+# Tables
+
+## Sheet 1
+
+### Table A
+
+| A |
+| - |
+| 1 |
+
+### Table B
+
+| B |
+| - |
+| 2 |
+
+## Sheet 2
+
+| C |
+| - |
+| 3 |
+"""
+    schema = MultiTableParsingSchema(
+        table_header_level=3,
+        capture_description=True
+    )
+    workbook = parse_workbook(markdown, schema)
+    
+    # Test get_sheet
+    sheet1 = workbook.get_sheet("Sheet 1")
+    assert sheet1 is not None
+    assert sheet1.name == "Sheet 1"
+    
+    sheet2 = workbook.get_sheet("Sheet 2")
+    assert sheet2 is not None
+    
+    assert workbook.get_sheet("NonExistent") is None
+    
+    # Test get_table
+    table_a = sheet1.get_table("Table A")
+    assert table_a is not None
+    assert table_a.name == "Table A"
+    
+    table_b = sheet1.get_table("Table B")
+    assert table_b is not None
+    
+    assert sheet1.get_table("NonExistent") is None
+
 

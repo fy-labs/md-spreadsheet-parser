@@ -84,6 +84,45 @@ import json
 print(json.dumps(workbook.json, indent=2))
 ```
 
+### Lookup API
+
+You can retrieve sheets and tables by name using `get_sheet` and `get_table`.
+
+```python
+sheet = workbook.get_sheet("Sheet 1")
+if sheet:
+    table = sheet.get_table("Users Table")
+    if table:
+        print(table.rows)
+```
+
+### Simple Scan Interface
+
+If you just want to extract all tables from a document regardless of structure (ignoring sheets and headers), use `scan_tables`.
+
+```python
+from md_spreadsheet_parser import scan_tables
+
+markdown = """
+Some text...
+
+| A | B |
+| - | - |
+| 1 | 2 |
+
+More text...
+
+| C |
+| - |
+| 3 |
+"""
+
+tables = scan_tables(markdown)
+for table in tables:
+    print(table.headers)
+```
+
+
 
 ## License
 

@@ -85,6 +85,15 @@ class Sheet:
             "tables": [t.json for t in self.tables]
         }
 
+    def get_table(self, name: str) -> Optional[Table]:
+        """
+        Retrieve a table by its name. Returns None if not found.
+        """
+        for table in self.tables:
+            if table.name == name:
+                return table
+        return None
+
 @dataclass(frozen=True)
 class Workbook:
     """
@@ -97,6 +106,15 @@ class Workbook:
         return {
             "sheets": [s.json for s in self.sheets]
         }
+
+    def get_sheet(self, name: str) -> Optional[Sheet]:
+        """
+        Retrieve a sheet by its name. Returns None if not found.
+        """
+        for sheet in self.sheets:
+            if sheet.name == name:
+                return sheet
+        return None
 
 @dataclass(frozen=True)
 class MultiTableParsingSchema(ParsingSchema):

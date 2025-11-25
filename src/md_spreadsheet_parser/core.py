@@ -13,6 +13,13 @@ from .schemas import (
 def clean_cell(cell_content: str, schema: ParsingSchema) -> str:
     """
     Cleans a single cell content based on the schema.
+
+    Args:
+        cell_content (str): The raw content of the cell.
+        schema (ParsingSchema): The schema configuration.
+
+    Returns:
+        str: The cleaned cell content.
     """
     if schema.strip_whitespace:
         return cell_content.strip()
@@ -22,6 +29,13 @@ def clean_cell(cell_content: str, schema: ParsingSchema) -> str:
 def parse_row(line: str, schema: ParsingSchema) -> list[str]:
     """
     Parses a single line into a list of cell values.
+
+    Args:
+        line (str): The raw line string.
+        schema (ParsingSchema): The schema configuration.
+
+    Returns:
+        list[str]: A list of cell values.
     """
     parts = line.split(schema.column_separator)
 
@@ -44,7 +58,14 @@ def parse_row(line: str, schema: ParsingSchema) -> list[str]:
 
 def is_separator_row(row_cells: list[str], schema: ParsingSchema) -> bool:
     """
-    Determines if a parsed row is a header separator row (e.g. ---|---).
+    Determines if a parsed row is a header separator row (e.g. `---|---`).
+
+    Args:
+        row_cells (list[str]): The list of cell values in the row.
+        schema (ParsingSchema): The schema configuration.
+
+    Returns:
+        bool: True if the row is a separator row, False otherwise.
     """
     if not row_cells:
         return False
@@ -67,6 +88,20 @@ def is_separator_row(row_cells: list[str], schema: ParsingSchema) -> bool:
 def parse_table(text: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> ParseResult:
     """
     Parses a single block of text into a table.
+
+    Args:
+        text (str): The markdown text containing the table.
+        schema (ParsingSchema, optional): The parsing configuration. Defaults to DEFAULT_SCHEMA.
+
+    Returns:
+        ParseResult: The parsed table result containing headers, rows, and metadata.
+
+    Example:
+        ```python
+        markdown = "| A | B |\\n|---|---|\\n| 1 | 2 |"
+        result = parse_table(markdown)
+        print(result.headers) # ['A', 'B']
+        ```
     """
     lines = text.strip().split("\n")
 
@@ -110,6 +145,7 @@ def _extract_tables(text: str, schema: ParsingSchema) -> list[Table]:
     """
     Helper function to extract tables from text based on schema configuration.
     Handles both header-based splitting (if table_header_level is set) and blank-line splitting.
+    Internal use only.
     """
     tables: list[Table] = []
 
@@ -207,7 +243,15 @@ def _extract_tables(text: str, schema: ParsingSchema) -> list[Table]:
 def parse_sheet(text: str, name: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> Sheet:
     """
     Parses a sheet content which may contain multiple tables.
-    Supports splitting by table headers and extracting descriptions if configured.
+    Supports splitting by table headers and extracting descriptions if configured in schema.
+
+    Args:
+        text (str): The content of the sheet.
+        name (str): The name of the sheet.
+        schema (ParsingSchema, optional): The parsing configuration. Defaults to DEFAULT_SCHEMA.
+
+    Returns:
+        Sheet: A Sheet object containing the parsed tables.
     """
     tables = _extract_tables(text, schema)
     return Sheet(name=name, tables=tables)
@@ -217,6 +261,21 @@ def parse_workbook(text: str, schema: MultiTableParsingSchema) -> Workbook:
     """
     Parses a full workbook text containing multiple sheets.
     Strictly requires the root_marker to be present. Content before the marker is ignored.
+
+    Args:
+        text (str): The full markdown text of the workbook.
+        schema (MultiTableParsingSchema): The schema configuration including root marker and header levels.
+
+    Returns:
+        Workbook: A Workbook object containing the parsed sheets.
+
+    Example:
+        ```python
+        markdown = "# Tables\\n## Sheet1\\n| A | B |\\n|---|---|\\n| 1 | 2 |"
+        schema = MultiTableParsingSchema()
+        workbook = parse_workbook(markdown, schema)
+        print(workbook.sheets[0].name) # 'Sheet1'
+        ```
     """
     # Find the root marker
     marker_index = text.find(schema.root_marker)
@@ -257,7 +316,21 @@ def parse_workbook(text: str, schema: MultiTableParsingSchema) -> Workbook:
 def scan_tables(text: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> list[Table]:
     """
     Scans the entire text for tables.
-    If schema is configured with table_header_level, it attempts to extract named tables and descriptions.
+    If schema is configured with `table_header_level`, it attempts to extract named tables and descriptions.
     Otherwise, it ignores hierarchy and headers, returning a flat list of all found tables.
+
+    Args:
+        text (str): The markdown text to scan.
+        schema (ParsingSchema, optional): The parsing configuration. Defaults to DEFAULT_SCHEMA.
+
+    Returns:
+        list[Table]: A list of all found Table objects.
+
+    Example:
+        ```python
+        markdown = "Some text...\\n| A | B |\\n|---|---|\\n| 1 | 2 |"
+        tables = scan_tables(markdown)
+        print(len(tables)) # 1
+        ```
     """
     return _extract_tables(text, schema)

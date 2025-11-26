@@ -14,15 +14,16 @@ def test_workbook_end_boundary():
 # Tables
 
 ## Sheet1
-| A |
-|---|
-| 1 |
+| ID | Name | Role |
+|---|---|---|
+| 1 | Alice | Admin |
+| 2 | Bob | User |
 
 # Next Section
 This is unrelated documentation.
-| X |
-|---|
-| 9 |
+| X | Y |
+|---|---|
+| 9 | 9 |
 """
     schema = MultiTableParsingSchema(root_marker="# Tables", sheet_header_level=2)
     workbook = parse_workbook(markdown, schema)
@@ -35,11 +36,10 @@ This is unrelated documentation.
     # Sheet1 should have 1 table
     assert len(sheet1.tables) == 1
     table1 = sheet1.tables[0]
-    assert table1.headers == ["A"]
-    assert table1.rows == [["1"]]
-
-    # The second table (X, 9) should NOT be in Sheet1
-    # Currently, without the fix, it might be included.
+    assert table1.headers == ["ID", "Name", "Role"]
+    assert len(table1.rows) == 2
+    assert table1.rows[0] == ["1", "Alice", "Admin"]
+    assert table1.rows[1] == ["2", "Bob", "User"]
 
 
 def test_japanese_content():
@@ -47,17 +47,18 @@ def test_japanese_content():
     Test parsing of Japanese content (headers, values, sheet names).
     """
     markdown = """
-| 名前 | 年齢 | 職業 |
-| --- | --- | --- |
-| 田中 | 30 | エンジニア |
-| 佐藤 | 25 | デザイナー |
+| ID | 名前 | 年齢 | 職業 | 備考 |
+| -- | -- | -- | -- | -- |
+| 1 | 田中 | 30 | エンジニア | リーダー |
+| 2 | 佐藤 | 25 | デザイナー | 新卒 |
+| 3 | 鈴木 | 40 | マネージャー | 兼務 |
 """
     table = parse_table(markdown)
 
-    assert table.headers == ["名前", "年齢", "職業"]
-    assert len(table.rows) == 2
-    assert table.rows[0] == ["田中", "30", "エンジニア"]
-    assert table.rows[1] == ["佐藤", "25", "デザイナー"]
+    assert table.headers == ["ID", "名前", "年齢", "職業", "備考"]
+    assert len(table.rows) == 3
+    assert table.rows[0] == ["1", "田中", "30", "エンジニア", "リーダー"]
+    assert table.rows[2] == ["3", "鈴木", "40", "マネージャー", "兼務"]
 
 
 def test_emoji_content():
@@ -65,17 +66,18 @@ def test_emoji_content():
     Test parsing of content with Emojis.
     """
     markdown = """
-| Status | Item |
-| --- | --- |
-| ✅ | Apple 🍎 |
-| ❌ | Banana 🍌 |
+| Status | Item | Category | Priority |
+| --- | --- | --- | --- |
+| ✅ | Apple 🍎 | Fruit 🍇 | High ⬆️ |
+| ❌ | Banana 🍌 | Fruit 🍇 | Low ⬇️ |
+| ⚠️ | Car 🚗 | Vehicle 🚙 | Medium ➡️ |
 """
     table = parse_table(markdown)
 
-    assert table.headers == ["Status", "Item"]
-    assert len(table.rows) == 2
-    assert table.rows[0] == ["✅", "Apple 🍎"]
-    assert table.rows[1] == ["❌", "Banana 🍌"]
+    assert table.headers == ["Status", "Item", "Category", "Priority"]
+    assert len(table.rows) == 3
+    assert table.rows[0] == ["✅", "Apple 🍎", "Fruit 🍇", "High ⬆️"]
+    assert table.rows[2] == ["⚠️", "Car 🚗", "Vehicle 🚙", "Medium ➡️"]
 
 
 def test_workbook_japanese_sheet_names():
@@ -83,13 +85,15 @@ def test_workbook_japanese_sheet_names():
 # データ
 
 ## ユーザー一覧
-| ID | 名前 |
-| -- | -- |
-| 1  | 太郎 |
+| ID | 名前 | メール |
+| -- | -- | -- |
+| 1  | 太郎 | taro@example.com |
+| 2  | 花子 | hanako@example.com |
 """
     schema = MultiTableParsingSchema(root_marker="# データ", sheet_header_level=2)
     workbook = parse_workbook(markdown, schema)
 
     assert len(workbook.sheets) == 1
     assert workbook.sheets[0].name == "ユーザー一覧"
-    assert workbook.sheets[0].tables[0].rows[0] == ["1", "太郎"]
+    assert len(workbook.sheets[0].tables[0].rows) == 2
+    assert workbook.sheets[0].tables[0].rows[0] == ["1", "太郎", "taro@example.com"]

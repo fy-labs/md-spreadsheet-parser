@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, TypedDict, Type, TypeVar
+from typing import Any, TypedDict
 
 from .schemas import ParsingSchema, MultiTableParsingSchema, DEFAULT_SCHEMA
 from .validation import validate_table
@@ -8,8 +8,6 @@ from .generator import (
     generate_sheet_markdown,
     generate_workbook_markdown,
 )
-
-T = TypeVar("T")
 
 
 class TableJSON(TypedDict):
@@ -81,12 +79,12 @@ class Table:
             "metadata": self.metadata if self.metadata is not None else {},
         }
 
-    def to_models(self, schema_cls: Type[T]) -> list[T]:
+    def to_models[T](self, schema_cls: type[T]) -> list[T]:
         """
         Converts the table rows into a list of dataclass instances, performing validation and type conversion.
 
         Args:
-            schema_cls (Type[T]): The dataclass type to validate against.
+            schema_cls (type[T]): The dataclass type to validate against.
 
         Returns:
             list[T]: A list of validated dataclass instances.

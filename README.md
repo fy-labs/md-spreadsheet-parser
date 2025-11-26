@@ -348,7 +348,7 @@ Customize parsing behavior using `ParsingSchema` and `MultiTableParsingSchema`.
 |---|---|---|
 | `column_separator` | `\|` | Character used to separate columns. |
 | `header_separator_char` | `-` | Character used in the separator row. |
-| `require_outer_pipes` | `False` | If `True`, tables must have outer pipes (e.g. `\| col \|`). |
+| `require_outer_pipes` | `False` | If `True`, generated markdown tables will include outer pipes (e.g. `\| col \|`). Does not affect parsing. |
 | `strip_whitespace` | `True` | If `True`, whitespace is stripped from cell values. |
 | `root_marker` | `# Tables` | (MultiTable) Marker indicating start of data section. |
 | `sheet_header_level` | `2` | (MultiTable) Header level for sheets (e.g. `## Sheet`). |

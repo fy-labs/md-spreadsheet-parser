@@ -226,6 +226,8 @@ Introduction paragraph.
 """
 
 tables = scan_tables(markdown)
+```
+
 ### 2. Type-Safe Validation (Recommended)
 
 The most powerful feature of this library is converting loose markdown tables into strongly-typed Python objects using `dataclasses`. This ensures your data is valid and easy to work with.

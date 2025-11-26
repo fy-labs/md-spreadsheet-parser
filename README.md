@@ -5,10 +5,12 @@ It provides zero-dependency parsing with support for multiple tables, configurab
 
 ## Features
 
-- **Pure Python**: Zero dependencies, runs anywhere Python runs.
-- **Structured Output**: Converts Markdown tables into JSON-friendly objects with headers and rows.
-- **Multi-Table Support**: Can parse multiple tables (sheets) from a single file using a specific structure.
-- **Configurable**: Supports different table styles via schemas.
+- **Pure Python & Zero Dependencies**: Lightweight and portable. Runs anywhere Python runs, including WebAssembly (Pyodide).
+- **Type-Safe Validation**: Convert loose Markdown tables into strongly-typed Python `dataclasses` with automatic type conversion and validation.
+- **Round-Trip Support**: Parse Markdown to objects, modify data, and generate Markdown back. Ideal for building editors or automation tools.
+- **Robust Parsing**: Gracefully handles malformed tables (missing/extra columns) and escaped characters.
+- **Multi-Table Workbooks**: Support for parsing multiple sheets and tables from a single file, including metadata (names, descriptions).
+- **JSON-Friendly**: Easy export to dictionaries/JSON for integration with other tools (e.g., Pandas, APIs).
 
 ## Installation
 

@@ -41,3 +41,9 @@ class MultiTableParsingSchema(ParsingSchema):
     sheet_header_level: int = 2
     table_header_level: int | None = None
     capture_description: bool = False
+
+    def __post_init__(self):
+        if self.capture_description and self.table_header_level is None:
+            raise ValueError(
+                "capture_description=True requires table_header_level to be set"
+            )

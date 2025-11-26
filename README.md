@@ -3,8 +3,6 @@
 A lightweight, pure Python library for parsing Markdown tables into structured data.
 It provides zero-dependency parsing with support for multiple tables, configurable schemas, and JSON-friendly output.
 
-[**📚 Documentation**](https://f-y.github.io/md-spreadsheet-parser/)
-
 ## Features
 
 - **Pure Python**: Zero dependencies, runs anywhere Python runs.
@@ -223,6 +221,37 @@ print(json.dumps(workbook.json, indent=2))
 table_data = workbook.sheets[0].tables[0].json
 df = pd.DataFrame(table_data["rows"], columns=table_data["headers"])
 ```
+
+#### Schema Validation (Pydantic-like)
+You can validate and convert table data into Python objects using standard `dataclasses`. This ensures type safety without external dependencies.
+
+```python
+from dataclasses import dataclass
+from md_spreadsheet_parser import parse_as
+
+@dataclass
+class User:
+    id: int
+    name: str
+    is_active: bool
+    email: str | None = None
+
+markdown = """
+| ID | Name  | Is Active | Email          |
+| -- | ----- | --------- | -------------- |
+| 1  | Alice | true      | alice@test.com |
+| 2  | Bob   | false     |                |
+"""
+
+# Returns a list of User objects
+users = parse_as(User, markdown)
+
+print(users[0].id)        # 1 (int)
+print(users[0].is_active) # True (bool)
+print(users[1].email)     # None
+```
+
+If validation fails, a `TableValidationError` is raised with detailed error messages.
 
 ### 3. Configuration (Schemas)
 

@@ -137,6 +137,20 @@ def parse_table(text: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> Table:
     if potential_header is not None:
         rows.append(potential_header)
 
+    # Normalize rows to match header length
+    if headers:
+        header_len = len(headers)
+        normalized_rows = []
+        for row in rows:
+            if len(row) < header_len:
+                # Pad with empty strings
+                row.extend([""] * (header_len - len(row)))
+            elif len(row) > header_len:
+                # Truncate
+                row = row[:header_len]
+            normalized_rows.append(row)
+        rows = normalized_rows
+
     return Table(headers=headers, rows=rows, metadata={"schema_used": str(schema)})
 
 

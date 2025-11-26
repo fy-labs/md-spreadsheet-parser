@@ -251,6 +251,29 @@ print(users[0].is_active) # True (bool)
 print(users[1].email)     # None
 ```
 
+You can also validate tables extracted from a workbook:
+
+```python
+from md_spreadsheet_parser import parse_workbook, MultiTableParsingSchema
+
+markdown = """
+# Data
+## Users
+| ID | Name  | Is Active |
+| -- | ----- | --------- |
+| 1  | Alice | true      |
+"""
+
+workbook = parse_workbook(markdown, MultiTableParsingSchema())
+
+# Retrieve the table and convert
+# Assuming the "Users" sheet exists and has at least one table
+sheet = workbook.get_sheet("Users")
+if sheet and sheet.tables:
+    users = sheet.tables[0].to_models(User)
+    print(users[0].name) # Alice
+```
+
 If validation fails, a `TableValidationError` is raised with detailed error messages.
 
 ### 3. Configuration (Schemas)

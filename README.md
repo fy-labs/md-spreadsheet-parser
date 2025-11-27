@@ -22,59 +22,37 @@
 
 ## Table of Contents
 
-- [Features](#-features)
-- [Installation](#-installation)
-- [Usage](#-usage)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+    - [1. Basic Parsing](#1-basic-parsing)
+    - [2. Type-Safe Validation](#2-type-safe-validation-recommended)
+    - [3. Markdown Generation](#3-markdown-generation-round-trip)
+    - [4. Advanced Features](#4-advanced-features)
+    - [5. Robustness](#5-robustness-handling-malformed-tables)
     - [Command Line Interface (CLI)](#command-line-interface-cli)
-    - [Python API](#python-api)
-        - [1. Basic Parsing](#1-basic-parsing)
-        - [2. Type-Safe Validation](#2-type-safe-validation-recommended)
-        - [3. Markdown Generation](#3-markdown-generation-round-trip)
-        - [4. Advanced Features](#4-advanced-features)
-        - [5. Robustness](#5-robustness-handling-malformed-tables)
-- [Configuration](#-configuration)
-- [Future Roadmap](#-future-roadmap)
-- [License](#-license)
+- [Configuration](#configuration)
+- [Future Roadmap](#future-roadmap)
+- [License](#license)
 
-## ✨ Features
+## Features
 
-- **🐍 Pure Python & Zero Dependencies**: Lightweight and portable. Runs anywhere Python runs, including **WebAssembly (Pyodide)**.
-- **🛡️ Type-Safe Validation**: Convert loose Markdown tables into strongly-typed Python `dataclasses` with automatic type conversion.
-- **🔄 Round-Trip Support**: Parse to objects, modify data, and generate Markdown back. Perfect for editors.
-- **💪 Robust Parsing**: Gracefully handles malformed tables (missing/extra columns) and escaped characters.
-- **📑 Multi-Table Workbooks**: Support for parsing multiple sheets and tables from a single file, including metadata.
-- **🔌 JSON-Friendly**: Easy export to dictionaries/JSON for integration with other tools (e.g., Pandas, APIs).
+- **Pure Python & Zero Dependencies**: Lightweight and portable. Runs anywhere Python runs, including **WebAssembly (Pyodide)**.
+- **Type-Safe Validation**: Convert loose Markdown tables into strongly-typed Python `dataclasses` with automatic type conversion.
+- **Round-Trip Support**: Parse to objects, modify data, and generate Markdown back. Perfect for editors.
+- **Robust Parsing**: Gracefully handles malformed tables (missing/extra columns) and escaped characters.
+- **Multi-Table Workbooks**: Support for parsing multiple sheets and tables from a single file, including metadata.
+- **JSON-Friendly**: Easy export to dictionaries/JSON for integration with other tools (e.g., Pandas, APIs).
 
-## 📦 Installation
+## Installation
 
 ```bash
 pip install md-spreadsheet-parser
 ```
 
-## 🚀 Usage
+## Usage
 
-### Command Line Interface (CLI)
-
-You can use the `md-spreadsheet-parser` command to parse Markdown files and output JSON. This is useful for piping data to other tools.
-
-```bash
-# Read from file
-md-spreadsheet-parser input.md
-
-# Read from stdin (pipe)
-cat input.md | md-spreadsheet-parser
-```
-
-**Options:**
-- `--scan`: Scan for all tables ignoring workbook structure (returns a list of tables).
-- `--root-marker`: Set the root marker (default: `# Tables`).
-- `--sheet-header-level`: Set sheet header level (default: 2).
-- `--table-header-level`: Set table header level (default: None).
-- `--capture-description`: Capture table descriptions (requires `--table-header-level`).
-
-### Python API
-
-#### 1. Basic Parsing
+### 1. Basic Parsing
 
 **Single Table**
 Parse a standard Markdown table into a structured object.
@@ -128,7 +106,7 @@ for sheet in workbook.sheets:
         print(table.rows)
 ```
 
-#### 2. Type-Safe Validation (Recommended)
+### 2. Type-Safe Validation (Recommended)
 
 The most powerful feature of this library is converting loose markdown tables into strongly-typed Python objects using `dataclasses`. This ensures your data is valid and easy to work with.
 
@@ -168,7 +146,7 @@ except TableValidationError as e:
 *   **Optional Fields**: Handles `Optional[T]` by converting empty strings to `None`.
 *   **Validation**: Raises detailed errors if data doesn't match the schema.
 
-#### 3. Markdown Generation (Round-Trip)
+### 3. Markdown Generation (Round-Trip)
 
 You can modify parsed objects and convert them back to Markdown strings using `to_markdown()`. This enables a complete "Parse -> Modify -> Generate" workflow.
 
@@ -191,7 +169,7 @@ print(table.to_markdown(schema))
 # | 3 | 4 |
 ```
 
-#### 4. Advanced Features
+### 4. Advanced Features
 
 **Metadata Extraction (Table Names & Descriptions)**
 You can configure the parser to extract table names (from headers) and descriptions (text preceding the table).
@@ -263,7 +241,7 @@ print(len(tables))
 # 2
 ```
 
-#### 5. Robustness (Handling Malformed Tables)
+### 5. Robustness (Handling Malformed Tables)
 
 The parser is designed to handle imperfect markdown tables gracefully.
 
@@ -288,7 +266,26 @@ print(table.rows)
 
 This ensures that `table.rows` always matches the structure of `table.headers`, preventing crashes during iteration or validation.
 
-## ⚙️ Configuration
+### Command Line Interface (CLI)
+
+You can use the `md-spreadsheet-parser` command to parse Markdown files and output JSON. This is useful for piping data to other tools.
+
+```bash
+# Read from file
+md-spreadsheet-parser input.md
+
+# Read from stdin (pipe)
+cat input.md | md-spreadsheet-parser
+```
+
+**Options:**
+- `--scan`: Scan for all tables ignoring workbook structure (returns a list of tables).
+- `--root-marker`: Set the root marker (default: `# Tables`).
+- `--sheet-header-level`: Set sheet header level (default: 2).
+- `--table-header-level`: Set table header level (default: None).
+- `--capture-description`: Capture table descriptions (requires `--table-header-level`).
+
+## Configuration
 
 Customize parsing behavior using `ParsingSchema` and `MultiTableParsingSchema`.
 
@@ -318,7 +315,7 @@ table_data = workbook.sheets[0].tables[0].json
 df = pd.DataFrame(table_data["rows"], columns=table_data["headers"])
 ```
 
-## 🔮 Future Roadmap
+## Future Roadmap
 
 We plan to extend the library to support **Visual Metadata** for better integration with rich Markdown editors.
 
@@ -326,6 +323,6 @@ We plan to extend the library to support **Visual Metadata** for better integrat
 - **Conditional Formatting**: Highlighting cells based on values.
 - **Data Types**: Explicitly defining column types (e.g., currency, date) for better editor UX.
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](LICENSE).

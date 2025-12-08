@@ -18,6 +18,7 @@ class ParsingSchema:
     header_separator_char: str = "-"
     require_outer_pipes: bool = True
     strip_whitespace: bool = True
+    convert_br_to_newline: bool = True
 
 
 # Default schema for standard Markdown tables (GFM style)

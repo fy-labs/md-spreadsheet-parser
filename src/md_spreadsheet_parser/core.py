@@ -12,6 +12,10 @@ def clean_cell(cell: str, schema: ParsingSchema) -> str:
     if schema.strip_whitespace:
         cell = cell.strip()
 
+    if schema.convert_br_to_newline:
+        # Replace <br>, <br/>, <br /> (case-insensitive) with \n
+        cell = re.sub(r"<br\s*/?>", "\n", cell, flags=re.IGNORECASE)
+
     # Unescape the column separator (e.g. \| -> |)
     # We also need to handle \\ -> \
     # Simple replacement for now: replace \<sep> with <sep>

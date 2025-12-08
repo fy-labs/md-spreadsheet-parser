@@ -33,7 +33,8 @@
     - [5. Advanced Features](#5-advanced-features)
     - [6. Advanced Type Conversion](#6-advanced-type-conversion)
     - [7. Robustness](#7-robustness-handling-malformed-tables)
-    - [8. Performance & Scalability (Streaming API)](#8-performance--scalability-streaming-api)
+    - [8. In-Cell Line Break Support](#8-in-cell-line-break-support)
+    - [9. Performance & Scalability (Streaming API)](#9-performance--scalability-streaming-api)
     - [Command Line Interface (CLI)](#command-line-interface-cli)
 - [Configuration](#configuration)
 - [Future Roadmap](#future-roadmap)
@@ -449,7 +450,24 @@ print(table.rows)
 
 This ensures that `table.rows` always matches the structure of `table.headers`, preventing crashes during iteration or validation.
 
-### 8. Performance & Scalability (Streaming API)
+### 8. In-Cell Line Break Support
+
+The parser automatically converts HTML line breaks to Python newlines (`\n`). This enables handling multiline cells naturally.
+
+**Supported Tags (Case-Insensitive):**
+- `<br>`
+- `<br/>`
+- `<br />`
+
+```python
+markdown = "| Line1<br>Line2 |"
+table = parse_table(markdown)
+# table.rows[0][0] == "Line1\nLine2"
+```
+
+To disable this, set `convert_br_to_newline=False` in `ParsingSchema`.
+
+### 9. Performance & Scalability (Streaming API)
 
 **Beyond Excel's Limits**: While Excel is limited to 1,048,576 rows, `md-spreadsheet-parser` can process Markdown files of **unlimited size** (e.g., 10GB+ server logs) using the Streaming API.
 

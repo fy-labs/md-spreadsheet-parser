@@ -99,8 +99,9 @@ def test_table_header_level_mismatch():
 
     assert len(workbook.sheets) == 1
     sheet = workbook.sheets[0]
-    # Should have 0 tables because #### doesn't match ###
-    assert len(sheet.tables) == 0
+    # Should have 1 table (unnamed) because #### doesn't match ### but relaxed parsing finds the table
+    assert len(sheet.tables) == 1
+    assert sheet.tables[0].name is None
 
 
 def test_column_separator_mismatch():

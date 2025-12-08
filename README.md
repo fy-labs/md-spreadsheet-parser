@@ -299,8 +299,8 @@ cat input.md | md-spreadsheet-parser
 - `--scan`: Scan for all tables ignoring workbook structure (returns a list of tables).
 - `--root-marker`: Set the root marker (default: `# Tables`).
 - `--sheet-header-level`: Set sheet header level (default: 2).
-- `--table-header-level`: Set table header level (default: None).
-- `--capture-description`: Capture table descriptions (requires `--table-header-level`).
+- `--table-header-level`: Set table header level (default: 3).
+- `--capture-description`: Capture table descriptions (default: True).
 
 ## Configuration
 
@@ -314,8 +314,8 @@ Customize parsing behavior using `ParsingSchema` and `MultiTableParsingSchema`.
 | `strip_whitespace` | `True` | If `True`, whitespace is stripped from cell values. |
 | `root_marker` | `# Tables` | (MultiTable) Marker indicating start of data section. |
 | `sheet_header_level` | `2` | (MultiTable) Header level for sheets. |
-| `table_header_level` | `None` | (MultiTable) Header level for tables. |
-| `capture_description` | `False` | (MultiTable) Capture text between header and table. |
+| `table_header_level` | `3` | (MultiTable) Header level for tables. |
+| `capture_description` | `True` | (MultiTable) Capture text between header and table. |
 
 ## Future Roadmap
 

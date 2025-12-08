@@ -154,7 +154,7 @@ def _extract_tables(
         current_block_start_line = start_line_offset
 
         def process_table_block(end_line_idx: int):
-            if current_table_name and current_table_lines:
+            if current_table_lines:
                 # Try to separate description from table content
                 # Simple heuristic: find the first line that looks like a table row
                 table_start_idx = -1
@@ -179,58 +179,38 @@ def _extract_tables(
                     if description == "":
                         description = None
 
-                    # Calculate start/end lines for the table content itself
-                    # The block starts at current_block_start_line
-                    # The table content starts at table_start_idx relative to current_table_lines
-                    # But current_table_lines started after current_description_lines
-                    # Wait, current_table_lines is populated AFTER header.
-                    # Let's trace line numbers carefully.
+                    # If the table has no headers/rows after parsing, it might be just text.
+                    # parse_table will handle it.
                     
-                    # Actually, let's just use the block bounds for now, or refine if needed.
-                    # The table object represents the data. The "source range" should probably cover the whole block (header + desc + table)
-                    # OR just the table part. For replacement, replacing the whole block is safer if we want to update description too.
-                    # But the user asked to edit CELLS.
-                    # If we only replace the table part, we need the range of the table part.
+                    # Absolute line calculation
+                    # If this block had a header, current_block_start_line is header line.
+                    # If it was an anonymous block (start of file or between headers), 
+                    # current_block_start_line is where it started.
                     
-                    # current_table_lines contains lines AFTER the header.
-                    # table_start_idx is the index within current_table_lines where the table starts.
+                    # Refined offset:
+                    # The content starts at current_block_start_line + (1 if current_table_name else 0) ??
+                    # No, let's track the content start line more clearly.
                     
-                    # Line number of header = current_block_start_line
-                    # Line number of first table row = current_block_start_line + 1 (header line) + len(current_description_lines) + table_start_idx?
-                    # No, current_table_lines is just lines.
+                    # Logic adjustment:
+                    # If named, content starts at header_line + 1.
+                    # If unnamed, content starts at current_block_start_line.
                     
-                    # Let's simplify:
-                    # We are iterating `lines`. `idx` is the current line index in `lines`.
-                    # `current_block_start_line` is the index in `lines` where the header was found.
-                    
-                    # Actually, let's calculate exact start/end of the table part.
-                    # absolute_table_start = start_line_offset + current_block_start_line + 1 + table_start_idx
-                    # Wait, current_table_lines DOES NOT include description lines that were before the header (impossible)
-                    # It includes lines AFTER the header.
-                    
-                    # Refined logic:
-                    # header found at `line_idx`.
-                    # current_table_lines starts collecting from `line_idx + 1`.
-                    # table starts at `table_start_idx` inside `current_table_lines`.
-                    # So absolute start = start_line_offset + (line_idx + 1) + table_start_idx?
-                    # No, `current_block_start_line` tracks the header line index.
-                    
-                    abs_table_start = start_line_offset + current_block_start_line + 1 + table_start_idx
+                    offset_correction = 1 if current_table_name else 0
+                    abs_table_start = start_line_offset + current_block_start_line + offset_correction + table_start_idx
                     abs_table_end = start_line_offset + end_line_idx 
-                    # end_line_idx is the line index where the NEXT header starts (or EOF).
-                    # So the table ends at end_line_idx - 1 (exclusive of next header)
-                    # But we should trim empty lines at the end?
-                    # For now, let's just say it ends where the block ends.
-                    
+                   
                     table = parse_table(table_content, schema)
-                    table = replace(
-                        table, 
-                        name=current_table_name, 
-                        description=description,
-                        start_line=abs_table_start,
-                        end_line=abs_table_end
-                    )
-                    tables.append(table)
+                    
+                    # Only add if it actually looks like a table (has rows or headers)
+                    if table.rows or table.headers:
+                        table = replace(
+                            table, 
+                            name=current_table_name, 
+                            description=description,
+                            start_line=abs_table_start,
+                            end_line=abs_table_end
+                        )
+                        tables.append(table)
 
         for idx, line in enumerate(lines):
             stripped = line.strip()
@@ -241,8 +221,8 @@ def _extract_tables(
                 current_description_lines = []
                 current_block_start_line = idx
             else:
-                if current_table_name is not None:
-                    current_table_lines.append(line)
+                # Accumulate lines regardless of whether we have a name
+                current_table_lines.append(line)
 
         process_table_block(len(lines))
 

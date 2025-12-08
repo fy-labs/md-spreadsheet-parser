@@ -39,8 +39,8 @@ class MultiTableParsingSchema(ParsingSchema):
 
     root_marker: str = "# Tables"
     sheet_header_level: int = 2
-    table_header_level: int | None = None
-    capture_description: bool = False
+    table_header_level: int | None = 3
+    capture_description: bool = True
 
     def __post_init__(self):
         if self.capture_description and self.table_header_level is None:

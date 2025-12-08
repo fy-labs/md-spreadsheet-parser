@@ -1,5 +1,7 @@
 from dataclasses import dataclass
-from typing import Any, TypedDict
+from typing import Any, TypedDict, TypeVar
+
+T = TypeVar("T")
 
 from .schemas import ParsingSchema, MultiTableParsingSchema, DEFAULT_SCHEMA
 from .validation import validate_table
@@ -85,7 +87,7 @@ class Table:
             "end_line": self.end_line,
         }
 
-    def to_models[T](self, schema_cls: type[T]) -> list[T]:
+    def to_models(self, schema_cls: type[T]) -> list[T]:
         """
         Converts the table rows into a list of dataclass instances, performing validation and type conversion.
 

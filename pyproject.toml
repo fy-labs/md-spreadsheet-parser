@@ -1,13 +1,30 @@
 [project]
 name = "md-spreadsheet-parser"
 version = "0.1.3"
-description = "Add your description here"
+description = "A lightweight, pure Python library for parsing Markdown tables"
 readme = "README.md"
+license = { file = "LICENSE" }
+keywords = ["markdown", "table", "parser", "spreadsheet", "streaming", "csv"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Text Processing :: Markup :: Markdown",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Operating System :: OS Independent",
+]
 authors = [
     { name = "f-y" }
 ]
 requires-python = ">=3.12"
 dependencies = []
+
+[project.urls]
+Homepage = "https://f-y.github.io/md-spreadsheet-parser/"
+Repository = "https://github.com/f-y/md-spreadsheet-parser"
+Issues = "https://github.com/f-y/md-spreadsheet-parser/issues"
 
 [project.scripts]
 md-spreadsheet-parser = "md_spreadsheet_parser.cli:main"

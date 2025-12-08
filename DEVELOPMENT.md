@@ -92,9 +92,12 @@ The output will be in the `dist/` directory.
 md-spreadsheet-parser/
 ├── src/
 │   └── md_spreadsheet_parser/
-│       ├── core.py       # Main parsing logic
-│       ├── schemas.py    # Configuration dataclasses
-│       └── __init__.py   # Exports
+│       ├── parsing.py    # Pure parsing logic
+│       ├── loader.py     # File I/O and Streaming
+│       ├── validation.py # Validation and adapters
+│       ├── models.py     # Data structures
+│       ├── schemas.py    # Configuration
+│       └── __init__.py   # Public API exports
 ├── tests/                # Pytest tests
 ├── pyproject.toml        # Project configuration
 └── DEVELOPMENT.md        # This file

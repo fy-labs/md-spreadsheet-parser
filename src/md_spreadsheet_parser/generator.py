@@ -32,10 +32,17 @@ def generate_table_markdown(
     # Build table
     sep = f" {schema.column_separator} "
 
+    def _prepare_cell(cell: str) -> str:
+        """Prepare cell for markdown generation."""
+        if schema.convert_br_to_newline and "\n" in cell:
+            return cell.replace("\n", "<br>")
+        return cell
+
     # Headers
     if table.headers:
         # Add outer pipes if required
-        header_row = sep.join(table.headers)
+        processed_headers = [_prepare_cell(h) for h in table.headers]
+        header_row = sep.join(processed_headers)
         if schema.require_outer_pipes:
             header_row = (
                 f"{schema.column_separator} {header_row} {schema.column_separator}"
@@ -55,7 +62,8 @@ def generate_table_markdown(
 
     # Rows
     for row in table.rows:
-        row_str = sep.join(row)
+        processed_row = [_prepare_cell(cell) for cell in row]
+        row_str = sep.join(processed_row)
         if schema.require_outer_pipes:
             row_str = f"{schema.column_separator} {row_str} {schema.column_separator}"
         lines.append(row_str)

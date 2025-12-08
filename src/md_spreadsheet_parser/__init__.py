@@ -1,4 +1,12 @@
-from .core import parse_table, parse_sheet, parse_workbook, scan_tables
+from .core import (
+    parse_table, 
+    parse_sheet, 
+    parse_workbook, 
+    scan_tables,
+    parse_table_from_file,
+    parse_workbook_from_file,
+    scan_tables_from_file
+)
 from .schemas import (
     ParsingSchema,
     DEFAULT_SCHEMA,
@@ -23,6 +31,9 @@ __all__ = [
     "parse_sheet",
     "parse_workbook",
     "scan_tables",
+    "parse_table_from_file",
+    "parse_workbook_from_file",
+    "scan_tables_from_file",
     "ParsingSchema",
     "MultiTableParsingSchema",
     "ConversionSchema",

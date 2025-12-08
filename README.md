@@ -108,6 +108,22 @@ for sheet in workbook.sheets:
         print(table.rows)
 ```
 
+**File Loading Helpers**
+
+For convenience, you can parse directly from a file path (`str` or `Path`) or file-like object using the `_from_file` variants:
+
+```python
+from md_spreadsheet_parser import parse_workbook_from_file
+
+# Clean and easy
+workbook = parse_workbook_from_file("data.md")
+```
+
+Available helpers:
+- `parse_table_from_file(path_or_file)`
+- `parse_workbook_from_file(path_or_file)`
+- `scan_tables_from_file(path_or_file)`
+
 ### 2. Type-Safe Validation (Recommended)
 
 The most powerful feature of this library is converting loose markdown tables into strongly-typed Python objects using `dataclasses`. This ensures your data is valid and easy to work with.

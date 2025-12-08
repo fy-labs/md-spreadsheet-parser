@@ -377,9 +377,66 @@ def scan_tables(
         schema: Optional schema. If None, uses default MultiTableParsingSchema.
 
     Returns:
-        List of found Table objects.
     """
     if schema is None:
         schema = MultiTableParsingSchema()
 
     return _extract_tables(markdown, schema)
+
+
+from typing import Union, TextIO
+from pathlib import Path
+
+
+def _read_content(source: Union[str, Path, TextIO]) -> str:
+    """Helper to read content from file path or file object."""
+    if isinstance(source, (str, Path)):
+        with open(source, "r", encoding="utf-8") as f:
+            return f.read()
+    if hasattr(source, "read"):
+        return source.read()
+    raise ValueError(f"Invalid source type: {type(source)}")
+
+
+def parse_table_from_file(
+    source: Union[str, Path, TextIO], schema: ParsingSchema = DEFAULT_SCHEMA
+) -> Table:
+    """
+    Parse a markdown table from a file.
+    
+    Args:
+        source: File path (str/Path) or file-like object.
+        schema: Parsing configuration.
+    """
+    content = _read_content(source)
+    return parse_table(content, schema)
+
+
+def parse_workbook_from_file(
+    source: Union[str, Path, TextIO], 
+    schema: MultiTableParsingSchema = MultiTableParsingSchema()
+) -> Workbook:
+    """
+    Parse a markdown workbook from a file.
+    
+    Args:
+        source: File path (str/Path) or file-like object.
+        schema: Parsing configuration.
+    """
+    content = _read_content(source)
+    return parse_workbook(content, schema)
+
+
+def scan_tables_from_file(
+    source: Union[str, Path, TextIO], 
+    schema: MultiTableParsingSchema | None = None
+) -> list[Table]:
+    """
+    Scan a markdown file for all tables.
+    
+    Args:
+        source: File path (str/Path) or file-like object.
+        schema: Optional schema.
+    """
+    content = _read_content(source)
+    return scan_tables(content, schema)

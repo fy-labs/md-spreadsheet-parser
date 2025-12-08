@@ -125,3 +125,32 @@ More text.
     assert len(data) == 2
     assert data[0]["headers"] == ["A"]
     assert data[1]["headers"] == ["B"]
+
+
+def test_cli_no_br_conversion():
+    markdown = "| A |\n|---|\n| Line1<br>Line2 |"
+    result = subprocess.run(
+        CLI_CMD + ["--scan", "--no-br-conversion"],
+        input=markdown,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    data = json.loads(result.stdout)
+    # With conversion disabled, <br> persists
+    assert data[0]["rows"][0] == ["Line1<br>Line2"]
+
+
+def test_cli_no_strip_whitespace():
+    markdown = "| A |\n|---|\n|  Value  |"
+    result = subprocess.run(
+        CLI_CMD + ["--scan", "--no-strip-whitespace"],
+        input=markdown,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    data = json.loads(result.stdout)
+    # With strip disabled, spaces persist
+    assert data[0]["rows"][0] == ["  Value  "]
+

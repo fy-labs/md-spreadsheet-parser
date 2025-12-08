@@ -514,6 +514,11 @@ cat input.md | md-spreadsheet-parser
 - `--sheet-header-level`: Set sheet header level (default: 2).
 - `--table-header-level`: Set table header level (default: 3).
 - `--capture-description`: Capture table descriptions (default: True).
+- `--column-separator`: Character used to separate columns (default: `|`).
+- `--header-separator-char`: Character used in the separator row (default: `-`).
+- `--no-outer-pipes`: Allow tables without outer pipes (default: False).
+- `--no-strip-whitespace`: Do not strip whitespace from cell values (default: False).
+- `--no-br-conversion`: Disable automatic conversion of `<br>` tags to newlines (default: False).
 
 ## Configuration
 

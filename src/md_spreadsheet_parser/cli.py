@@ -46,6 +46,36 @@ def main():
         action="store_true",
         help="Capture text between header and table as description. Requires --table-header-level.",
     )
+    parser.add_argument(
+        "--column-separator",
+        type=str,
+        default="|",
+        help="Character used to separate columns.",
+    )
+    parser.add_argument(
+        "--header-separator-char",
+        type=str,
+        default="-",
+        help="Character used in the separator row.",
+    )
+    parser.add_argument(
+        "--no-outer-pipes",
+        action="store_false",
+        dest="require_outer_pipes",
+        help="Allow tables without outer pipes.",
+    )
+    parser.add_argument(
+        "--no-strip-whitespace",
+        action="store_false",
+        dest="strip_whitespace",
+        help="Do not strip whitespace from cell values.",
+    )
+    parser.add_argument(
+        "--no-br-conversion",
+        action="store_false",
+        dest="convert_br_to_newline",
+        help="Disable automatic conversion of <br> tags to newlines.",
+    )
 
     args = parser.parse_args()
 
@@ -73,6 +103,11 @@ def main():
         sheet_header_level=args.sheet_header_level,
         table_header_level=args.table_header_level,
         capture_description=args.capture_description,
+        column_separator=args.column_separator,
+        header_separator_char=args.header_separator_char,
+        require_outer_pipes=args.require_outer_pipes,
+        strip_whitespace=args.strip_whitespace,
+        convert_br_to_newline=args.convert_br_to_newline,
     )
 
     # Parse

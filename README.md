@@ -294,21 +294,45 @@ Register custom conversion functions for specific types. You can use **ANY Pytho
 - **Standard Library**: `Decimal`, `datetime`, `date`, `ZoneInfo`, `UUID`
 - **Custom Classes**: Your own data classes or objects
 
-Example using `Decimal`:
+Example using standard library types and a custom class:
 
 ```python
-from decimal import Decimal
-from md_spreadsheet_parser import ConversionSchema
+from dataclasses import dataclass
+from uuid import UUID
+from zoneinfo import ZoneInfo
+from md_spreadsheet_parser import ConversionSchema, parse_table
 
-def parse_currency(val: str) -> Decimal:
-    return Decimal(val.replace("$", "").replace(",", ""))
+@dataclass
+class Color:
+    r: int
+    g: int
+    b: int
+
+@dataclass
+class Config:
+    timezone: ZoneInfo
+    session_id: UUID
+    theme_color: Color
+
+markdown = """
+| Timezone | Session ID | Theme Color |
+| --- | --- | --- |
+| Asia/Tokyo | 12345678-1234-5678-1234-567812345678 | 255,0,0 |
+"""
 
 schema = ConversionSchema(
-    custom_converters={Decimal: parse_currency}
+    custom_converters={
+        # Standard Library Types
+        ZoneInfo: lambda v: ZoneInfo(v),
+        UUID: lambda v: UUID(v),
+        # Custom Class
+        Color: lambda v: Color(*map(int, v.split(",")))
+    }
 )
 
-# Now fields typed as Decimal key will use this converter
-data = parse_table(markdown).to_models(Product, conversion_schema=schema)
+data = parse_table(markdown).to_models(Config, conversion_schema=schema)
+# data[0].timezone is ZoneInfo("Asia/Tokyo")
+# data[0].theme_color is Color(255, 0, 0)
 ```
 
 **Field-Specific Converters**

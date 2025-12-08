@@ -20,6 +20,8 @@ class TableJSON(TypedDict):
     headers: list[str] | None
     rows: list[list[str]]
     metadata: dict[str, Any]
+    start_line: int | None
+    end_line: int | None
 
 
 class SheetJSON(TypedDict):
@@ -57,6 +59,8 @@ class Table:
     name: str | None = None
     description: str | None = None
     metadata: dict[str, Any] | None = None
+    start_line: int | None = None
+    end_line: int | None = None
 
     def __post_init__(self):
         if self.metadata is None:
@@ -77,6 +81,8 @@ class Table:
             "headers": self.headers,
             "rows": self.rows,
             "metadata": self.metadata if self.metadata is not None else {},
+            "start_line": self.start_line,
+            "end_line": self.end_line,
         }
 
     def to_models[T](self, schema_cls: type[T]) -> list[T]:

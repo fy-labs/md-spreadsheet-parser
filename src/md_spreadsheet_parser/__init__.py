@@ -6,6 +6,11 @@ from .models import (
     Workbook,
 )
 from .validation import TableValidationError
+from .generator import (
+    generate_table_markdown,
+    generate_sheet_markdown,
+    generate_workbook_markdown,
+)
 
 __all__ = [
     "parse_table",
@@ -19,4 +24,7 @@ __all__ = [
     "Workbook",
     "DEFAULT_SCHEMA",
     "TableValidationError",
+    "generate_table_markdown",
+    "generate_sheet_markdown",
+    "generate_workbook_markdown",
 ]

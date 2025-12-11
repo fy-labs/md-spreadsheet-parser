@@ -48,7 +48,9 @@
 - **Round-Trip Support**: Parse to objects, modify data, and generate Markdown back. Perfect for editors.
 - **Robust Parsing**: Gracefully handles malformed tables (missing/extra columns) and escaped characters.
 - **Multi-Table Workbooks**: Support for parsing multiple sheets and tables from a single file, including metadata.
-- **JSON-Friendly**: Easy export to dictionaries/JSON for integration with other tools (e.g., Pandas, APIs).
+- **JSON & Dict Support**: Column-level JSON parsing and direct conversion to `dict`/`TypedDict`.
+- **Pandas Integration**: seamlessly create DataFrames from markdown tables.
+- **JSON-Friendly**: Easy export to dictionaries/JSON for integration with other tools.
 
 ## Installation
 
@@ -183,8 +185,6 @@ class User(BaseModel):
 # Automatically detects Pydantic model and uses it for validation
 users = parse_table(markdown).to_models(User)
 ```
-
-The parser respects Pydantic's `alias` and `Field` constraints.
 
 The parser respects Pydantic's `alias` and `Field` constraints.
 

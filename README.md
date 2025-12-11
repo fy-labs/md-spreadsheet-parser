@@ -114,6 +114,63 @@ for sheet in workbook.sheets:
         print(table.rows)
 ```
 
+**Lookup API & Metadata**
+Retrieve sheets and tables directly by name, and access parsed metadata like descriptions.
+
+```python
+from md_spreadsheet_parser import parse_workbook
+
+markdown = """
+# Tables
+
+## Sales Data
+
+### Q1 Results
+Financial performance for the first quarter.
+
+| Year | Revenue |
+| ---- | ------- |
+| 2023 | 1000    |
+"""
+
+workbook = parse_workbook(markdown)
+
+# Access by name
+sheet = workbook.get_sheet("Sales Data")
+if sheet:
+    # Retrieve table by name (from ### Header)
+    table = sheet.get_table("Q1 Results")
+    
+    print(table.description)
+    # "Financial performance for the first quarter."
+    
+    print(table.rows)
+    # [['2023', '1000']]
+```
+
+**Simple Scan Interface**
+If you want to extract *all* tables from a document regardless of its structure (ignoring sheets and headers), use `scan_tables`.
+
+```python
+from md_spreadsheet_parser import scan_tables
+
+markdown = """
+| ID | Name |
+| -- | ---- |
+| 1  | Alice|
+
+... text ...
+
+| ID | Item |
+| -- | ---- |
+| A  | Apple|
+"""
+
+# Returns a flat list of all tables found
+tables = scan_tables(markdown)
+print(len(tables)) # 2
+```
+
 **File Loading Helpers**
 
 For convenience, you can parse directly from a file path (`str` or `Path`) or file-like object using the `_from_file` variants:
@@ -331,74 +388,17 @@ print(table.to_markdown(schema))
 
 ### 6. Advanced Features
 
-**Metadata Extraction (Table Names & Descriptions)**
-You can configure the parser to extract table names (from headers) and descriptions (text preceding the table).
+**Metadata Extraction Configuration**
+By default, the parser captures table names (level 3 headers) and descriptions. You can customize this behavior with `MultiTableParsingSchema`.
 
 ```python
-from md_spreadsheet_parser import parse_workbook, MultiTableParsingSchema
+from md_spreadsheet_parser import MultiTableParsingSchema
 
-markdown = """
-# Tables
-
-## Sales Data
-
-### Q1 Results
-Financial performance for the first quarter.
-
-| Month | Revenue |
-| ----- | ------- |
-| Jan   | 1000    |
-"""
-
-# Configure schema to capture table headers (level 3) and descriptions
 schema = MultiTableParsingSchema(
     table_header_level=3,     # Treat ### Header as table name
     capture_description=True  # Capture text between header and table
 )
-
-workbook = parse_workbook(markdown, schema)
-table = workbook.sheets[0].tables[0]
-
-print(f"Table: {table.name}")        # "Q1 Results"
-print(f"Desc: {table.description}")  # "Financial performance for the first quarter."
-```
-
-**Lookup API**
-Retrieve sheets and tables directly by name instead of iterating.
-
-```python
-sheet = workbook.get_sheet("Sales Data")
-if sheet:
-    table = sheet.get_table("Q1 Results")
-    if table:
-        print(table.rows)
-```
-
-**Simple Scan Interface**
-If you want to extract *all* tables from a document regardless of its structure (ignoring sheets and headers), use `scan_tables`.
-
-```python
-from md_spreadsheet_parser import scan_tables
-
-markdown = """
-Here is some text.
-
-| ID | Name |
-| -- | ---- |
-| 1  | Alice|
-
-More text...
-
-| ID | Item |
-| -- | ---- |
-| A  | Apple|
-"""
-
-# Returns a flat list of all tables found
-tables = scan_tables(markdown)
-
-print(len(tables))
-# 2
+# Pass schema to parse_workbook...
 ```
 
 ### 7. Advanced Type Conversion

@@ -643,11 +643,21 @@ Customize parsing behavior using `ParsingSchema` and `MultiTableParsingSchema`.
 
 ## Future Roadmap
 
-We plan to extend the library to support **Visual Metadata** for better integration with rich Markdown editors.
+This parser is the core foundation of a new ecosystem: **Text-Based Spreadsheet Management**.
 
-- **Column Widths**: Persisting user-adjusted column widths.
-- **Conditional Formatting**: Highlighting cells based on values.
-- **Data Types**: Explicitly defining column types (e.g., currency, date) for better editor UX.
+We are preparing to release a **Rich VS Code Extension** that acts as a full GUI Spreadsheet Editor for Markdown files.
+
+**The Vision: "Excel-like UX, Git-native Data"**
+By combining a high-performance editor with this robust parser, we aim to solve the long-standing problem of managing binary spreadsheet files in software projects.
+*   **For Humans**: Edit data with a comfortable, familiar UI (cell formatting, improved navigation, visual feedback).
+*   **For Machines**: Data is saved as clean, diff-able Markdown that this library can parse, validate, and convert into Python objects instantaneously.
+
+**Upcoming Features (Visual Metadata)**
+To bridge the gap between "Visual Editing" and "Clean Data", we will extend this library to support **Metadata**, allowing the editor to persist visual state without polluting your data:
+
+- **Column Width Persistence**: Remember your layout preferences.
+- **Visual Styling**: Conditional formatting and highlighters.
+- **Rich Data Hints**: Define column behaviors (Dropdowns, Date Pickers) that the editor enforces and the parser validates.
 
 ## License
 

@@ -647,6 +647,9 @@ This parser is the core foundation of a new ecosystem: **Text-Based Spreadsheet 
 
 We are preparing to release a **Rich VS Code Extension** that acts as a full GUI Spreadsheet Editor for Markdown files.
 
+> [!NOTE]
+> **Coming Soon**: The official release of the VS Code Extension will be announced here alongside **v1.0.0** of this library. Stay tuned!
+
 **The Vision: "Excel-like UX, Git-native Data"**
 By combining a high-performance editor with this robust parser, we aim to solve the long-standing problem of managing binary spreadsheet files in software projects.
 *   **For Humans**: Edit data with a comfortable, familiar UI (cell formatting, improved navigation, visual feedback).

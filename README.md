@@ -5,7 +5,7 @@
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" />
   </a>
   <a href="https://pypi.org/project/md-spreadsheet-parser/">
-    <img src="https://img.shields.io/badge/pypi-v0.2.1-blue" alt="PyPI" />
+    <img src="https://img.shields.io/badge/pypi-v0.2.4-blue" alt="PyPI" />
   </a>
   <a href="https://github.com/f-y/md-spreadsheet-parser">
     <img src="https://img.shields.io/badge/repository-github-green.svg" alt="Repository" />

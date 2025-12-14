@@ -1,6 +1,5 @@
-from md_spreadsheet_parser.generator import generate_workbook_markdown
 from md_spreadsheet_parser.models import Sheet, Table
-from md_spreadsheet_parser.parsing import parse_sheet, parse_workbook
+from md_spreadsheet_parser.parsing import parse_workbook
 from md_spreadsheet_parser.schemas import MultiTableParsingSchema
 
 
@@ -20,6 +19,22 @@ def test_sheet_metadata_parsing():
     assert sheet.name == "Sheet 1"
     assert sheet.metadata == {"layout": {"type": "split", "direction": "vertical"}}
     assert len(sheet.tables) == 1
+
+
+def test_sheet_metadata_with_empty_lines():
+    markdown = """# Tables
+
+## Sheet 1
+
+<!-- md-spreadsheet-sheet-metadata: {"layout": "relaxed"} -->
+
+| A |
+|---|
+| 1 |
+"""
+    workbook = parse_workbook(markdown)
+    assert len(workbook.sheets) == 1
+    assert workbook.sheets[0].metadata == {"layout": "relaxed"}
 
 
 def test_sheet_metadata_generation():

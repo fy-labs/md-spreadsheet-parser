@@ -285,10 +285,17 @@ class Sheet:
     Attributes:
         name (str): Name of the sheet.
         tables (list[Table]): List of tables contained in this sheet.
+        metadata (dict[str, Any] | None): Arbitrary metadata (e.g. layout). Defaults to None.
     """
 
     name: str
     tables: list[Table]
+    metadata: dict[str, Any] | None = None
+
+    def __post_init__(self):
+        if self.metadata is None:
+            # Hack to allow default value for mutable type in frozen dataclass
+            object.__setattr__(self, "metadata", {})
 
     @property
     def json(self) -> SheetJSON:
@@ -298,7 +305,11 @@ class Sheet:
         Returns:
             SheetJSON: A dictionary containing the sheet data.
         """
-        return {"name": self.name, "tables": [t.json for t in self.tables]}
+        return {
+            "name": self.name,
+            "tables": [t.json for t in self.tables],
+            "metadata": self.metadata if self.metadata is not None else {},
+        }
 
     def get_table(self, name: str) -> Table | None:
         """

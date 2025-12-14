@@ -344,8 +344,21 @@ def parse_sheet(
     """
     Parse a sheet (section) containing one or more tables.
     """
+    metadata: dict[str, Any] = {}
+
+    # Scan for sheet metadata
+    # We prioritize the first match if multiple exist (though usually only one)
+    metadata_match = re.search(
+        r"^<!-- md-spreadsheet-sheet-metadata: (.*) -->$", markdown, re.MULTILINE
+    )
+    if metadata_match:
+        try:
+            metadata = json.loads(metadata_match.group(1))
+        except json.JSONDecodeError:
+            pass  # Ignore invalid JSON
+
     tables = _extract_tables(markdown, schema, start_line_offset)
-    return Sheet(name=name, tables=tables)
+    return Sheet(name=name, tables=tables, metadata=metadata)
 
 
 def parse_workbook(

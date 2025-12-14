@@ -1,6 +1,6 @@
 [project]
 name = "md-spreadsheet-parser"
-version = "0.3.1"
+version = "0.3.2"
 description = "A robust Markdown table parser and generator with metadata support"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -15,9 +15,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Operating System :: OS Independent",
 ]
-authors = [
-    { name = "f-y" }
-]
+authors = [{ name = "f-y" }]
 requires-python = ">=3.10"
 dependencies = []
 

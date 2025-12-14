@@ -98,19 +98,19 @@ def generate_sheet_markdown(
 
     if isinstance(schema, MultiTableParsingSchema):
         lines.append(f"{'#' * schema.sheet_header_level} {sheet.name}")
-
-        # Append Sheet Metadata if present
-        if sheet.metadata:
-            metadata_json = json.dumps(sheet.metadata)
-            comment = f"<!-- md-spreadsheet-sheet-metadata: {metadata_json} -->"
-            lines.append(comment)
-
         lines.append("")
 
     for i, table in enumerate(sheet.tables):
         lines.append(generate_table_markdown(table, schema))
         if i < len(sheet.tables) - 1:
             lines.append("")  # Empty line between tables
+
+    # Append Sheet Metadata if present (at the end)
+    if isinstance(schema, MultiTableParsingSchema) and sheet.metadata:
+        lines.append("")
+        metadata_json = json.dumps(sheet.metadata)
+        comment = f"<!-- md-spreadsheet-sheet-metadata: {metadata_json} -->"
+        lines.append(comment)
 
     return "\n".join(lines)
 

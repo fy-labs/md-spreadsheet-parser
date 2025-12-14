@@ -1,5 +1,6 @@
 from md_spreadsheet_parser import MultiTableParsingSchema, parse_workbook
 
+
 def test_mixed_header_levels():
     markdown = """
 # Tables
@@ -30,9 +31,10 @@ This is a user table.
     users_sheet = workbook.sheets[0]
     assert users_sheet.name == "Users"
     assert len(users_sheet.tables) == 1
-    
+
     user_table = users_sheet.tables[0]
     assert user_table.name == "User Table"
+    assert user_table.description is not None
     assert "This is a user table." in user_table.description
     assert user_table.headers == ["ID", "Name"]
     assert len(user_table.rows) == 2
@@ -43,7 +45,7 @@ This is a user table.
     assert products_sheet.name == "Products"
     # This assertion checks if the unnamed table is captured
     assert len(products_sheet.tables) == 1
-    
+
     product_table = products_sheet.tables[0]
     assert product_table.name is None  # Should have no name
     assert product_table.headers == ["ID", "Item"]

@@ -43,13 +43,36 @@ uv run ruff format --check .
 uv run ruff format .
 ```
 
-### Type Checking (Mypy)
-We use `mypy` for static type checking. The codebase is fully typed.
+### 3. Static Analysis
+We use **Pyright** for static type checking (replacing Mypy for performance).
 
 ```bash
-uv run mypy .
+uv run pyright
 ```
-> **Note**: If you encounter missing stubs errors, ensure `pandas-stubs` is installed (it is included in `dev` dependencies).
+
+Ensure your code passes type checks before committing.
+- Use `type: ignore` sparingly and only when necessary (e.g., dynamically updated attributes).
+- For Pydantic/Pandas integration, ensure stubs are installed or checks are guarded.
+
+### 4. Release Notes Workflow
+To ensure accurate and comprehensive release notes, we use a **Fragment-based** approach.
+
+#### Adding a Change Note
+When you implement a feature or fix a bug:
+1.  Create a new Markdown file in `docs/changes/next/`.
+2.  Name the file `<issue_id>.<type>.md` (or `<short_desc>.<type>.md` if no issue).
+    - Types: `feature`, `fix`, `docs`, `breaking`.
+    - Example: `123.feature.md` or `metadata-persistence.fix.md`.
+3.  Write a clear, user-facing summary of the change in the file.
+
+#### Release Process
+The release manager will:
+1.  Collect all files from `docs/changes/next/`.
+2.  Compile them into `CHANGELOG.md` under the new version header.
+3.  Delete the fragment files.
+4.  Commit the updated `CHANGELOG.md`.
+
+This ensures that every change is documented at the time of implementation, preventing "ChangeLog only" generic updates.
 
 ### Testing (Pytest)
 We use `pytest` for unit and integration testing.

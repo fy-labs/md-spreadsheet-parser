@@ -1,13 +1,12 @@
-
 import json
 import types
 from dataclasses import fields, is_dataclass
-from typing import Any, Type, TypeVar, get_origin, get_args, TYPE_CHECKING, is_typeddict
+from typing import TYPE_CHECKING, Any, Type, TypeVar, get_args, get_origin, is_typeddict
 
 if TYPE_CHECKING:
     from .models import Table
+from .schemas import DEFAULT_CONVERSION_SCHEMA, ConversionSchema
 from .utils import normalize_header
-from .schemas import ConversionSchema, DEFAULT_CONVERSION_SCHEMA
 
 T = TypeVar("T")
 
@@ -23,7 +22,6 @@ class TableValidationError(Exception):
         super().__init__(
             f"Validation failed with {len(errors)} errors:\n" + "\n".join(errors)
         )
-
 
 
 def _convert_value(
@@ -69,7 +67,7 @@ def _convert_value(
                 return True
             if lower_val == false_val.lower():
                 return False
-                
+
         raise ValueError(f"Invalid boolean value: '{value}'")
 
     if target_type is str:
@@ -79,32 +77,30 @@ def _convert_value(
     # Logic: If target is strict dict or list, try parsing as JSON
     # This covers dict, list, dict[str, Any], list[int], etc.
     if origin in (dict, list) or target_type in (dict, list):
-         if not value.strip():
-             # Empty string -> Empty dict/list? Or None?
-             # Let's say empty string is not valid JSON, so strictly it should fail or return empty type.
-             # For user friendliness, let's treat empty string as empty container if not Optional
-             return origin() if origin else target_type()
-         try:
-             return json.loads(value)
-         except json.JSONDecodeError as e:
-             raise ValueError(f"Invalid JSON for {target_type}: {e}")
+        if not value.strip():
+            # Empty string -> Empty dict/list? Or None?
+            # Let's say empty string is not valid JSON, so strictly it should fail or return empty type.
+            # For user friendliness, let's treat empty string as empty container if not Optional
+            return origin() if origin else target_type()
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON for {target_type}: {e}")
 
     # Fallback for other types (or if type hint is missing)
     return value
-
-
-
 
 
 # --- Pydantic Support (Optional) ---
 
 try:
     from pydantic import BaseModel
+
     HAS_PYDANTIC = True
 except ImportError:
     HAS_PYDANTIC = False
     HAS_PYDANTIC = False
-    BaseModel = None # type: ignore
+    BaseModel = object  # type: ignore
 
 
 def _validate_table_dataclass(
@@ -116,7 +112,7 @@ def _validate_table_dataclass(
     Validates a Table using standard dataclasses.
     """
     # Map headers to fields
-    cls_fields = {f.name: f for f in fields(schema_cls)} # type: ignore
+    cls_fields = {f.name: f for f in fields(schema_cls)}  # type: ignore
     header_map: dict[int, str] = {}  # column_index -> field_name
 
     normalized_headers = [normalize_header(h) for h in (table.headers or [])]
@@ -145,7 +141,9 @@ def _validate_table_dataclass(
                         converted_value = converter(cell_value)
                     else:
                         converted_value = _convert_value(
-                            cell_value, field_def.type, conversion_schema # type: ignore
+                            cell_value,
+                            field_def.type,
+                            conversion_schema,  # type: ignore
                         )
                     row_data[field_name] = converted_value
                 except ValueError as e:
@@ -185,10 +183,10 @@ def _validate_table_typeddict(
     # __annotations__ or __required_keys__ / __optional_keys__ behavior
     # For simplicity, we trust __annotations__ for type hints
     annotations = schema_cls.__annotations__
-    
+
     header_map: dict[int, str] = {}
     normalized_headers = [normalize_header(h) for h in (table.headers or [])]
-    
+
     # Map headers to TypedDict keys
     # Prioritize exact match, then normalized match
     # TypedDict doesn't support 'alias' natively usually, so simple mapping
@@ -212,17 +210,17 @@ def _validate_table_typeddict(
                 target_type = annotations[key]
 
                 try:
-                     if key in conversion_schema.field_converters:
+                    if key in conversion_schema.field_converters:
                         converter = conversion_schema.field_converters[key]
                         converted_value = converter(cell_value)
-                     else:
+                    else:
                         converted_value = _convert_value(
                             cell_value, target_type, conversion_schema
                         )
-                     row_data[key] = converted_value
+                    row_data[key] = converted_value
                 except Exception as e:
                     row_errors.append(f"Column '{key}': {str(e)}")
-        
+
         if row_errors:
             for err in row_errors:
                 errors.append(f"Row {row_idx + 1}: {err}")
@@ -232,13 +230,13 @@ def _validate_table_typeddict(
         # We should check required keys if using TypedDict features (Python 3.9+)
         # But for now, simple dict construction
         try:
-             # Basic check: Missing keys?
-             # TypedDict doesn't complain on instantiation (it's a dict), 
-             # but static type checkers do. 
-             # We should probably validate required keys if possible, but let's keep it simple for now.
-             results.append(row_data) # type: ignore
+            # Basic check: Missing keys?
+            # TypedDict doesn't complain on instantiation (it's a dict),
+            # but static type checkers do.
+            # We should probably validate required keys if possible, but let's keep it simple for now.
+            results.append(row_data)  # type: ignore
         except Exception as e:
-             errors.append(f"Row {row_idx + 1}: {str(e)}")
+            errors.append(f"Row {row_idx + 1}: {str(e)}")
 
     if errors:
         raise TableValidationError(errors)
@@ -255,35 +253,37 @@ def _validate_table_dict(
     Keys are derived from headers.
     """
     # normalized_headers = [normalize_header(h) for h in table.headers]
-    
+
     # Use original header names or normalized?
     # Usually users prefer original headers as keys if they passed 'dict'.
     # But wait, validate_table usually normalizes.
-    # Let's use the actual header string from the table as the key, 
+    # Let's use the actual header string from the table as the key,
     # but normalize for field_converter lookups.
-    
+
     results = []
-    
+
     for row in table.rows:
         row_data = {}
         for idx, cell_value in enumerate(row):
             if table.headers and idx < len(table.headers):
                 original_header = table.headers[idx]
                 key_for_conversion = normalize_header(original_header)
-                
+
                 # Check converters
                 if key_for_conversion in conversion_schema.field_converters:
                     converter = conversion_schema.field_converters[key_for_conversion]
                     try:
                         val = converter(cell_value)
                     except Exception:
-                        val = cell_value # Fallback or Raise? Let's fallback for raw dict
+                        val = (
+                            cell_value  # Fallback or Raise? Let's fallback for raw dict
+                        )
                 else:
                     val = cell_value
-                
+
                 row_data[original_header] = val
         results.append(row_data)
-        
+
     return results
 
 
@@ -308,31 +308,34 @@ def validate_table(
         TableValidationError: If validation fails.
     """
     # Check for Pydantic Model
-    if HAS_PYDANTIC and issubclass(schema_cls, BaseModel):
+    if HAS_PYDANTIC and BaseModel and issubclass(schema_cls, BaseModel):
         if not table.headers:
-             raise TableValidationError(["Table has no headers"])
+            raise TableValidationError(["Table has no headers"])
         # Import adapter lazily to avoid unused imports when pydantic is not used
         # (though we checked HAS_PYDANTIC so it exists)
         from .pydantic_adapter import validate_table_pydantic
-        return validate_table_pydantic(table, schema_cls, conversion_schema) # type: ignore
+
+        return validate_table_pydantic(table, schema_cls, conversion_schema)  # type: ignore
 
     # Check for Dataclass
     if is_dataclass(schema_cls):
         if not table.headers:
-             raise TableValidationError(["Table has no headers"])
+            raise TableValidationError(["Table has no headers"])
         return _validate_table_dataclass(table, schema_cls, conversion_schema)
 
     # Check for TypedDict
     if is_typeddict(schema_cls):
         if not table.headers:
-             raise TableValidationError(["Table has no headers"])
+            raise TableValidationError(["Table has no headers"])
         return _validate_table_typeddict(table, schema_cls, conversion_schema)
 
     # Check for simple dict
     # We compare schema_cls against dict type
     if schema_cls is dict:
         if not table.headers:
-             raise TableValidationError(["Table has no headers"])
-        return _validate_table_dict(table, conversion_schema) # type: ignore
+            raise TableValidationError(["Table has no headers"])
+        return _validate_table_dict(table, conversion_schema)  # type: ignore
 
-    raise ValueError(f"{schema_cls} must be a dataclass, Pydantic model, TypedDict, or dict")
+    raise ValueError(
+        f"{schema_cls} must be a dataclass, Pydantic model, TypedDict, or dict"
+    )

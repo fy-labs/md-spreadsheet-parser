@@ -51,6 +51,7 @@ def test_table_update_cell_header():
 
     # Expand header
     t3 = table.update_cell(-1, 3, "D")
+    assert t3.headers is not None
     assert len(t3.headers) == 4
     assert t3.headers[3] == "D"
 

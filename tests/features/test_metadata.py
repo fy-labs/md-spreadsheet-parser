@@ -2,7 +2,7 @@ import pytest
 from md_spreadsheet_parser.generator import generate_table_markdown
 from md_spreadsheet_parser.models import Table
 from md_spreadsheet_parser.parsing import parse_sheet, parse_table
-from md_spreadsheet_parser.schemas import MultiTableParsingSchema, ParsingSchema
+from md_spreadsheet_parser.schemas import MultiTableParsingSchema
 
 
 def test_parse_metadata_after_table():
@@ -46,7 +46,6 @@ def test_generate_metadata_comment():
 
     expected_comment = '<!-- md-spreadsheet-metadata: {"columnWidths": [123]} -->'
     assert expected_comment in md
-    # Ensure it follows the table
     # Ensure it follows the table with an empty line
     lines = md.split("\n")
     assert lines[-1] == expected_comment
@@ -65,3 +64,56 @@ def test_sheet_parsing_with_metadata():
     sheet = parse_sheet(markdown, "Sheet 1", MultiTableParsingSchema())
     assert len(sheet.tables) == 1
     assert sheet.tables[0].metadata["visual"]["test"] is True
+
+
+def test_parse_metadata_with_empty_lines():
+    markdown = """
+| A |
+|---|
+| 1 |
+
+
+<!-- md-spreadsheet-metadata: {"columnWidths": [100]} -->
+""".strip()
+
+    table = parse_table(markdown)
+    assert table.rows == [["1"]]
+    assert "visual" in table.metadata
+    assert table.metadata["visual"]["columnWidths"] == [100]
+
+
+def test_sheet_parsing_with_gapped_metadata():
+    markdown = """# Sheet
+
+| A |
+|---|
+| 1 |
+
+
+<!-- md-spreadsheet-metadata: {"test": true} -->
+
+# Next Section
+"""
+    sheet = parse_sheet(markdown, "Sheet", MultiTableParsingSchema())
+    assert len(sheet.tables) == 1
+    assert "visual" in sheet.tables[0].metadata
+    assert sheet.tables[0].metadata["visual"]["test"] is True
+
+
+def test_simple_parsing_with_gapped_metadata():
+    # Test without headers (Simple extraction)
+    markdown = """
+| A |
+|---|
+| 1 |
+
+
+<!-- md-spreadsheet-metadata: {"columnWidths": [100]} -->
+""".strip()
+
+    schema = MultiTableParsingSchema(table_header_level=None, capture_description=False)
+    sheet = parse_sheet(markdown, "Sheet", schema)
+
+    assert len(sheet.tables) == 1
+    assert "visual" in sheet.tables[0].metadata
+    assert sheet.tables[0].metadata["visual"]["columnWidths"] == [100]

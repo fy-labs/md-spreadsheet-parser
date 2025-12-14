@@ -36,6 +36,8 @@
     - [8. Robustness](#8-robustness-handling-malformed-tables)
     - [9. In-Cell Line Break Support](#9-in-cell-line-break-support)
     - [10. Performance & Scalability (Streaming API)](#10-performance--scalability-streaming-api)
+    - [11. Programmatic Manipulation](#11-programmatic-manipulation)
+    - [12. Visual Metadata Persistence](#12-visual-metadata-persistence)
     - [Command Line Interface (CLI)](#command-line-interface-cli)
 - [Configuration](#configuration)
 - [Future Roadmap](#future-roadmap)
@@ -640,7 +642,25 @@ new_table = table.delete_row(row_idx=2)
 
 # Clear column data (keeps headers and row structure, empties cells)
 new_table = table.clear_column_data(col_idx=3)
+new_table = table.clear_column_data(col_idx=3)
 ```
+
+### 12. Visual Metadata Persistence
+
+The library supports persisting visual state (like column widths and filter settings) without altering the Markdown table structure itself. This is achieved via a hidden HTML comment appended after the table.
+
+```markdown
+| A | B |
+|---|---|
+| 1 | 2 |
+
+<!-- md-spreadsheet-metadata: {"columnWidths": [100, 200]} -->
+```
+
+This ensures that:
+1.  **Clean Data**: The table remains standard Markdown, readable by any renderer.
+2.  **Rich State**: Compatible tools (like our VS Code Extension) can read the comment to restore UI state (column widths, hidden columns, etc.).
+3.  **Robustness**: The parser automatically associates this metadata with the preceding table, even if separated by blank lines.
 
 ### Command Line Interface (CLI)
 
@@ -696,10 +716,8 @@ By combining a high-performance editor with this robust parser, we aim to solve 
 *   **For Humans**: Edit data with a comfortable, familiar UI (cell formatting, improved navigation, visual feedback).
 *   **For Machines**: Data is saved as clean, diff-able Markdown that this library can parse, validate, and convert into Python objects instantaneously.
 
-**Upcoming Features (Visual Metadata)**
-To bridge the gap between "Visual Editing" and "Clean Data", we will extend this library to support **Metadata**, allowing the editor to persist visual state without polluting your data:
-
-- **Column Width Persistence**: Remember your layout preferences.
+**Upcoming Features**
+We are actively working on:
 - **Visual Styling**: Conditional formatting and highlighters.
 - **Rich Data Hints**: Define column behaviors (Dropdowns, Date Pickers) that the editor enforces and the parser validates.
 

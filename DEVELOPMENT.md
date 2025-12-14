@@ -88,6 +88,11 @@ The test suite is structured to categorize tests by their architectural role, en
 *   **`tests/integrations/`**: **Ecosystem Adapters**. Tests verifying compatibility with external libraries (Pandas, Pydantic, JSON) to ensure the library fits into the broader Python data ecosystem.
 *   **`tests/scenarios/`**: **Quality Assurance**. Tests specifically designed to break the parser (Malformed inputs, Edge cases, Fuzzing-like mixed inputs) to ensure robustness without cluttering functional tests.
 
+### File Organization Guidelines
+*   **One Feature, One File**: In `tests/features/`, group all tests related to a specific feature (including happy paths, edge cases, and regression tests) into a single file (e.g., `test_metadata.py`).
+*   **Don't Fragment by Scenario**: Avoid creating separate files for specific bug fixes or scenarios (e.g., `test_metadata_gaps.py`) unless the test logic requires a completely different setup or the file size exceeds ~500 lines.
+*   **Clear Naming**: Use `test_<feature_name>.py`.
+
 ## 6. Pull Request Checklist
 
 When submitting a PR, please confirm:

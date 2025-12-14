@@ -1,4 +1,3 @@
-import pytest
 from md_spreadsheet_parser.generator import generate_table_markdown
 from md_spreadsheet_parser.models import Table
 from md_spreadsheet_parser.parsing import parse_sheet, parse_table

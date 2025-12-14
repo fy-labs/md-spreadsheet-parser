@@ -1,6 +1,7 @@
 import json
 import re
 from dataclasses import replace
+from typing import Any
 
 from .models import Sheet, Table, Workbook
 from .schemas import DEFAULT_SCHEMA, MultiTableParsingSchema, ParsingSchema
@@ -153,7 +154,7 @@ def parse_table(markdown: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> Table:
             normalized_rows.append(row)
         rows = normalized_rows
 
-    metadata = {"schema_used": str(schema)}
+    metadata: dict[str, Any] = {"schema_used": str(schema)}
     if visual_metadata:
         metadata["visual"] = visual_metadata
 
@@ -190,11 +191,12 @@ def _extract_tables_simple(
                         tables.append(table)
                     elif table.metadata and "visual" in table.metadata and tables:
                         last_table = tables[-1]
-                        current_vis = last_table.metadata.get("visual", {})
+                        last_metadata = last_table.metadata or {}
+                        current_vis = last_metadata.get("visual", {})
                         new_vis = current_vis.copy()
                         new_vis.update(table.metadata["visual"])
 
-                        updated_md = last_table.metadata.copy()
+                        updated_md = last_metadata.copy()
                         updated_md["visual"] = new_vis
 
                         tables[-1] = replace(last_table, metadata=updated_md)
@@ -223,11 +225,12 @@ def _extract_tables_simple(
                 tables.append(table)
             elif table.metadata and "visual" in table.metadata and tables:
                 last_table = tables[-1]
-                current_vis = last_table.metadata.get("visual", {})
+                last_metadata = last_table.metadata or {}
+                current_vis = last_metadata.get("visual", {})
                 new_vis = current_vis.copy()
                 new_vis.update(table.metadata["visual"])
 
-                updated_md = last_table.metadata.copy()
+                updated_md = last_metadata.copy()
                 updated_md["visual"] = new_vis
 
                 tables[-1] = replace(last_table, metadata=updated_md)

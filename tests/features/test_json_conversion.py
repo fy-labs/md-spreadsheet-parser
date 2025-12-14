@@ -7,12 +7,14 @@ from md_spreadsheet_parser.validation import TableValidationError
 
 # Mock Pydantic availability
 try:
-    from pydantic import BaseModel
+    from pydantic import BaseModel  # type: ignore
 
     HAS_PYDANTIC = True
 except ImportError:
     HAS_PYDANTIC = False
-    BaseModel = None  # type: ignore
+
+    class BaseModel:  # type: ignore
+        pass
 
 
 def create_table(headers, rows, name=None, description=None):

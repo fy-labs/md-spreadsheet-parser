@@ -39,6 +39,7 @@ class SheetJSON(TypedDict):
 
     name: str
     tables: list[TableJSON]
+    metadata: dict[str, Any]
 
 
 class WorkbookJSON(TypedDict):

@@ -47,6 +47,7 @@ def test_table_update_cell_header():
     table = Table(headers=["A", "B"], rows=[])
 
     t2 = table.update_cell(-1, 0, "X")
+    assert t2.headers is not None
     assert t2.headers[0] == "X"
 
     # Expand header

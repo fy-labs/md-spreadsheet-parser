@@ -344,7 +344,7 @@ def parse_sheet(
     """
     Parse a sheet (section) containing one or more tables.
     """
-    metadata: dict[str, Any] = {}
+    metadata: dict[str, Any] | None = None
 
     # Scan for sheet metadata
     # We prioritize the first match if multiple exist (though usually only one)

@@ -81,7 +81,14 @@ def _convert_value(
             # Empty string -> Empty dict/list? Or None?
             # Let's say empty string is not valid JSON, so strictly it should fail or return empty type.
             # For user friendliness, let's treat empty string as empty container if not Optional
-            return origin() if origin else target_type()
+            # For user friendliness, let's treat empty string as empty container if not Optional
+            if origin:
+                return origin()  # type: ignore
+            if target_type is dict:
+                return {}
+            if target_type is list:
+                return []
+            return target_type()  # type: ignore
         try:
             return json.loads(value)
         except json.JSONDecodeError as e:
@@ -142,7 +149,7 @@ def _validate_table_dataclass(
                     else:
                         converted_value = _convert_value(
                             cell_value,
-                            field_def.type,
+                            field_def.type,  # type: ignore
                             conversion_schema,  # type: ignore
                         )
                     row_data[field_name] = converted_value

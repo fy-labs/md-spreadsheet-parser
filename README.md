@@ -643,7 +643,6 @@ new_table = table.delete_row(row_idx=2)
 
 # Clear column data (keeps headers and row structure, empties cells)
 new_table = table.clear_column_data(col_idx=3)
-new_table = table.clear_column_data(col_idx=3)
 ```
 
 ### 12. Visual Metadata Persistence

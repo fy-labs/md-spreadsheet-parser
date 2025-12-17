@@ -11,8 +11,8 @@
   <a href="https://github.com/f-y/md-spreadsheet-parser">
     <img src="https://img.shields.io/badge/repository-github-blue.svg" alt="Repository" />
   </a>
-  <a href="https://github.com/f-y/md-spreadsheet-suite/actions?query=workflow%3ATests">
-    <img src="https://github.com/f-y/md-spreadsheet-suite/workflows/Tests/badge.svg" alt="Build Status" />
+  <a href="https://github.com/f-y/md-spreadsheet-parser/actions?query=workflow%3ATests">
+    <img src="https://github.com/f-y/md-spreadsheet-parser/workflows/Tests/badge.svg" alt="Build Status" />
   </a>
 </p>
 

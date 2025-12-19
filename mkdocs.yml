@@ -24,4 +24,5 @@ plugins:
 
 nav:
   - Home: index.md
+  - Cookbook: COOKBOOK.md
   - API Reference: api.md

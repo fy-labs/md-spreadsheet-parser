@@ -22,7 +22,9 @@
 
 ---
 
-**md-spreadsheet-parser** turns loose Markdown text into strongly-typed data structures. It validates content against schemas and generates clean Markdown output. Ideal for building spreadsheet-like interfaces, data pipelines, and automation tools.
+**md-spreadsheet-parser** elevates Markdown tables from simple text to first-class data structures. It offers a precise, zero-dependency engine to parse, validate, and manipulate tables with the ease of a spreadsheet and the power of Python.
+
+🚀 **Need a quick solution?** Check out the [Cookbook](COOKBOOK.md) for copy-pasteable recipes (Excel conversion, Pandas integration, Markdown table manipulation, and more).
 
 ## Table of Contents
 

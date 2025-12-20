@@ -6,6 +6,7 @@ repo_name: f-y/md-spreadsheet-parser
 
 theme:
   name: material
+  custom_dir: docs/overrides
   features:
     - navigation.sections
     - navigation.expand

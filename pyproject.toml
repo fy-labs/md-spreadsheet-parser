@@ -1,7 +1,7 @@
 [project]
 name = "md-spreadsheet-parser"
 version = "0.4.0"
-description = "A robust Markdown table parser and generator with metadata support"
+description = "A robust, zero-dependency Python library for parsing, validating, and manipulating Markdown tables, including conversion from Excel to Markdown."
 readme = "README.md"
 license = { file = "LICENSE" }
 keywords = ["markdown", "table", "parser", "spreadsheet", "pandas", "csv"]

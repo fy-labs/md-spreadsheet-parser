@@ -1,0 +1,1 @@
+Fix bug where headers in markdown code blocks were incorrectly interpreted as document structure (e.g., `# Tables` or `## Sheet 1` inside a code block). The parser now correctly ignores any headers inside fenced code blocks.

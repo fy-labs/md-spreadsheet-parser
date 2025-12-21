@@ -372,10 +372,15 @@ def parse_workbook(
 
     # Find root marker
     start_index = 0
+    in_code_block = False
     if schema.root_marker:
         found = False
         for i, line in enumerate(lines):
-            if line.strip() == schema.root_marker:
+            stripped = line.strip()
+            if stripped.startswith("```"):
+                in_code_block = not in_code_block
+
+            if not in_code_block and stripped == schema.root_marker:
                 start_index = i + 1
                 found = True
                 break
@@ -389,8 +394,22 @@ def parse_workbook(
     current_sheet_lines: list[str] = []
     current_sheet_start_line = start_index
 
+    # Reset code block state for the second pass
+    # If we started after a root marker, check if that root marker line was just a marker.
+    # We assume valid markdown structure where root marker is not inside a code block (handled above).
+    in_code_block = False
+
     for idx, line in enumerate(lines[start_index:], start=start_index):
         stripped = line.strip()
+
+        if stripped.startswith("```"):
+            in_code_block = not in_code_block
+
+        if in_code_block:
+            # Just collect lines if we are in a sheet
+            if current_sheet_name:
+                current_sheet_lines.append(line)
+            continue
 
         # Check if line is a header
         if stripped.startswith("#"):

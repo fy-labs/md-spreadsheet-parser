@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.1] - 2025-12-21
+
+### 📚 Documentation
+
+Update PyPI package description to highlight zero-dependency parsing and Excel conversion features.
+
 ## [0.4.0] - 2025-12-21
 
 ### 🐛 Bug Fixes

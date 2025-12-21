@@ -1,7 +1,7 @@
 from md_spreadsheet_parser import (
-    parse_workbook,
-    parse_table,
     MultiTableParsingSchema,
+    parse_table,
+    parse_workbook,
 )
 
 
@@ -97,3 +97,65 @@ def test_workbook_japanese_sheet_names():
     assert workbook.sheets[0].name == "ユーザー一覧"
     assert len(workbook.sheets[0].tables[0].rows) == 2
     assert workbook.sheets[0].tables[0].rows[0] == ["1", "太郎", "taro@example.com"]
+
+
+def test_parse_workbook_ignores_code_blocks():
+    """
+    Test that headers inside markdown code blocks are ignored during workbook parsing.
+    """
+    md = """# Document Title
+
+Comparison of something.
+
+```markdown
+# Tables
+Here is an example of structure.
+```
+
+# Tables
+
+## Sheet 1
+
+| A | B |
+|---|---|
+| 1 | 2 |
+"""
+    schema = MultiTableParsingSchema(root_marker="# Tables", sheet_header_level=2)
+    workbook = parse_workbook(md, schema)
+
+    # Should ignore the first "# Tables" inside code block and find the second one.
+    assert len(workbook.sheets) == 1
+    assert workbook.sheets[0].name == "Sheet 1"
+
+
+def test_parse_sheet_ignores_code_blocks():
+    """
+    Test that sheet headers inside code blocks are ignored.
+    """
+    md = """# Tables
+
+## Sheet 1
+
+Some description.
+
+```python
+# Not a sheet header
+## Not a sheet header
+```
+
+| A | B |
+|---|---|
+| 1 | 2 |
+
+## Sheet 2
+
+| C | D |
+|---|---|
+| 3 | 4 |
+"""
+    schema = MultiTableParsingSchema(root_marker="# Tables", sheet_header_level=2)
+    workbook = parse_workbook(md, schema)
+
+    assert len(workbook.sheets) == 2
+    assert workbook.sheets[0].name == "Sheet 1"
+    assert workbook.sheets[1].name == "Sheet 2"

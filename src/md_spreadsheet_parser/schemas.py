@@ -67,6 +67,7 @@ class ConversionSchema:
         field_converters: Dictionary mapping field names (str) to conversion functions.
                           Takes precedence over `custom_converters`.
     """
+
     boolean_pairs: tuple[tuple[str, str], ...] = (
         ("true", "false"),
         ("yes", "no"),

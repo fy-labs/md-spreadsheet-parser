@@ -3,7 +3,7 @@ import re
 from dataclasses import replace
 from typing import Any
 
-from .models import Sheet, Table, Workbook
+from .models import AlignmentType, Sheet, Table, Workbook
 from .schemas import DEFAULT_SCHEMA, MultiTableParsingSchema, ParsingSchema
 
 
@@ -58,23 +58,57 @@ def parse_row(line: str, schema: ParsingSchema) -> list[str] | None:
     return cleaned_parts
 
 
-def is_separator_row(row: list[str], schema: ParsingSchema) -> bool:
+def parse_separator_row(
+    row: list[str], schema: ParsingSchema
+) -> list[AlignmentType] | None:
     """
-    Check if a row is a separator row (e.g. |---|---|).
+    Check if a row is a separator row. If so, return the list of alignments.
+    Returns None if it is not a separator row.
     """
-    # A separator row typically contains only hyphens, colons, and spaces.
-    # It must have at least one hyphen.
+    alignments: list[AlignmentType] = []
+    is_separator = True
+
     for cell in row:
-        # Remove expected chars
+        cell = cell.strip()
+        # Verify it resembles a separator (---, :---, :---:, ---:)
+        # Must contain at least one separator char
+        if schema.header_separator_char not in cell:
+            is_separator = False
+            break
+
+        # Remove expected chars to check validity
         cleaned = (
             cell.replace(schema.header_separator_char, "").replace(":", "").strip()
         )
         if cleaned:
-            return False
-        # Must contain at least one separator char (usually '-')
-        if schema.header_separator_char not in cell:
-            return False
-    return True
+            # Contains unexpected characters
+            is_separator = False
+            break
+
+        # Determine alignment
+        starts_col = cell.startswith(":")
+        ends_col = cell.endswith(":")
+
+        if starts_col and ends_col:
+            alignments.append("center")
+        elif ends_col:
+            alignments.append("right")
+        elif starts_col:
+            alignments.append("left")
+        else:
+            alignments.append("default")
+
+    if is_separator:
+        return alignments
+    return None
+
+
+def is_separator_row(row: list[str], schema: ParsingSchema) -> bool:
+    """
+    Deprecated: wrapper around parse_separator_row for backward compatibility if needed,
+    or just refactor usage.
+    """
+    return parse_separator_row(row, schema) is not None
 
 
 def parse_table(markdown: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> Table:
@@ -91,6 +125,8 @@ def parse_table(markdown: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> Table:
     lines = markdown.strip().split("\n")
     headers: list[str] | None = None
     rows: list[list[str]] = []
+    alignments: list[AlignmentType] | None = None
+    potential_header: list[str] | None = None
     visual_metadata: dict | None = None
 
     # Buffer for potential header row until we confirm it's a header with a separator
@@ -124,8 +160,12 @@ def parse_table(markdown: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> Table:
             continue
 
         if headers is None and potential_header is not None:
-            if is_separator_row(parsed_row, schema):
+            detected_alignments = parse_separator_row(parsed_row, schema)
+            if detected_alignments is not None:
                 headers = potential_header
+                alignments: list[AlignmentType] | None = detected_alignments
+                potential_header = None
+                continue
                 potential_header = None
                 continue
             else:
@@ -158,7 +198,7 @@ def parse_table(markdown: str, schema: ParsingSchema = DEFAULT_SCHEMA) -> Table:
     if visual_metadata:
         metadata["visual"] = visual_metadata
 
-    return Table(headers=headers, rows=rows, metadata=metadata)
+    return Table(headers=headers, rows=rows, metadata=metadata, alignments=alignments)
 
 
 def _extract_tables_simple(

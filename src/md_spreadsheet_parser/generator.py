@@ -53,9 +53,27 @@ def generate_table_markdown(
         lines.append(header_row)
 
         # Separator row
-        # Simple separator: ---
-        # We could try to match column widths but for now simple is fine.
-        separator_cells = [schema.header_separator_char * 3] * len(table.headers)
+        separator_cells = []
+        for i, _ in enumerate(table.headers):
+            alignment = "default"
+            if table.alignments and i < len(table.alignments):
+                # Ensure we handle potentially None values if list has gaps (unlikely by design but safe)
+                alignment = table.alignments[i] or "default"
+
+            # Construct separator cell based on alignment
+            # Use 3 hyphens as base
+            if alignment == "left":
+                cell = ":" + schema.header_separator_char * 3
+            elif alignment == "right":
+                cell = schema.header_separator_char * 3 + ":"
+            elif alignment == "center":
+                cell = ":" + schema.header_separator_char * 3 + ":"
+            else:
+                # default
+                cell = schema.header_separator_char * 3
+
+            separator_cells.append(cell)
+
         separator_row = sep.join(separator_cells)
         if schema.require_outer_pipes:
             separator_row = (

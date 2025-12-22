@@ -1,5 +1,5 @@
 from dataclasses import dataclass, replace
-from typing import Any, TypedDict, TypeVar
+from typing import Any, Literal, TypedDict, TypeVar
 
 from .generator import (
     generate_sheet_markdown,
@@ -17,6 +17,8 @@ from .validation import validate_table
 
 T = TypeVar("T")
 
+AlignmentType = Literal["left", "center", "right", "default"]
+
 
 class TableJSON(TypedDict):
     """
@@ -30,6 +32,7 @@ class TableJSON(TypedDict):
     metadata: dict[str, Any]
     start_line: int | None
     end_line: int | None
+    alignments: list[AlignmentType] | None
 
 
 class SheetJSON(TypedDict):
@@ -58,6 +61,7 @@ class Table:
     Attributes:
         headers (list[str] | None): List of column headers, or None if the table has no headers.
         rows (list[list[str]]): List of data rows.
+        alignments (list[AlignmentType] | None): List of column alignments ('left', 'center', 'right'). Defaults to None.
         name (str | None): Name of the table (e.g. from a header). Defaults to None.
         description (str | None): Description of the table. Defaults to None.
         metadata (dict[str, Any] | None): Arbitrary metadata. Defaults to None.
@@ -65,6 +69,7 @@ class Table:
 
     headers: list[str] | None
     rows: list[list[str]]
+    alignments: list[AlignmentType] | None = None
     name: str | None = None
     description: str | None = None
     metadata: dict[str, Any] | None = None
@@ -92,6 +97,7 @@ class Table:
             "metadata": self.metadata if self.metadata is not None else {},
             "start_line": self.start_line,
             "end_line": self.end_line,
+            "alignments": self.alignments,
         }
 
     def to_models(
@@ -145,9 +151,28 @@ class Table:
                 if col_idx >= len(new_headers):
                     new_headers.extend([""] * (col_idx - len(new_headers) + 1))
 
+            # Update alignments if headers grew
+            new_alignments = list(self.alignments) if self.alignments else []
+            if len(new_headers) > len(new_alignments):
+                # Fill with default/None up to new width
+                # But we only need as many alignments as columns.
+                # If alignments is None, it stays None?
+                # Ideally if we start tracking alignments, we should init it?
+                # If self.alignments was None, we might keep it None unless explicitly set?
+                # Consistent behavior: If alignments is NOT None, expand it.
+                if self.alignments is not None:
+                    # Cast or explicit type check might be needed for strict type checkers with literals
+                    # Using a typed list to satisfy invariant list[AlignmentType]
+                    extension: list[AlignmentType] = ["default"] * (
+                        len(new_headers) - len(new_alignments)
+                    )
+                    new_alignments.extend(extension)
+
+            final_alignments = new_alignments if self.alignments is not None else None
+
             new_headers[col_idx] = value
 
-            return replace(self, headers=new_headers)
+            return replace(self, headers=new_headers, alignments=final_alignments)
 
         # Handle Body update
         # 1. Ensure row exists
@@ -168,15 +193,35 @@ class Table:
             for _ in range(rows_to_add):
                 new_rows.append([""] * width)
 
-        target_row = new_rows[row_idx]
+        # If columns expanded due to row update, we might need to expand alignments too
+        current_width = len(new_rows[0]) if new_rows else 0
+        if col_idx >= current_width:
+            # This means we are expanding columns
+            if self.alignments is not None:
+                width_needed = col_idx + 1
+                current_align_len = len(self.alignments)
+                if width_needed > current_align_len:
+                    new_alignments = list(self.alignments)
+                    extension: list[AlignmentType] = ["default"] * (
+                        width_needed - current_align_len
+                    )
+                    new_alignments.extend(extension)
+                    return replace(
+                        self,
+                        rows=self._update_rows_cell(new_rows, row_idx, col_idx, value),
+                        alignments=new_alignments,
+                    )
 
-        # Grow cols if needed
+        return replace(
+            self, rows=self._update_rows_cell(new_rows, row_idx, col_idx, value)
+        )
+
+    def _update_rows_cell(self, new_rows, row_idx, col_idx, value):
+        target_row = new_rows[row_idx]
         if col_idx >= len(target_row):
             target_row.extend([""] * (col_idx - len(target_row) + 1))
-
         target_row[col_idx] = value
-
-        return replace(self, rows=new_rows)
+        return new_rows
 
     def delete_row(self, row_idx: int) -> "Table":
         """
@@ -202,7 +247,15 @@ class Table:
                 new_row.pop(col_idx)
             new_rows.append(new_row)
 
-        return replace(self, headers=new_headers, rows=new_rows)
+        new_alignments = None
+        if self.alignments is not None:
+            new_alignments = list(self.alignments)
+            if 0 <= col_idx < len(new_alignments):
+                new_alignments.pop(col_idx)
+
+        return replace(
+            self, headers=new_headers, rows=new_rows, alignments=new_alignments
+        )
 
     def clear_column_data(self, col_idx: int) -> "Table":
         """
@@ -258,6 +311,17 @@ class Table:
                 col_idx = len(new_headers)
             new_headers.insert(col_idx, "")
 
+        new_alignments = None
+        if self.alignments is not None:
+            new_alignments = list(self.alignments)
+            # Pad if needed before insertion?
+            if col_idx > len(new_alignments):
+                extension: list[AlignmentType] = ["default"] * (
+                    col_idx - len(new_alignments)
+                )
+                new_alignments.extend(extension)
+            new_alignments.insert(col_idx, "default")  # Default alignment
+
         new_rows = []
         for row in self.rows:
             new_row = list(row)
@@ -275,7 +339,9 @@ class Table:
             new_row.insert(target_idx, "")
             new_rows.append(new_row)
 
-        return replace(self, headers=new_headers, rows=new_rows)
+        return replace(
+            self, headers=new_headers, rows=new_rows, alignments=new_alignments
+        )
 
 
 @dataclass(frozen=True)

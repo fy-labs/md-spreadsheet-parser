@@ -21,7 +21,7 @@ def test_cli_stdin():
         text=True,
         check=True,
     )
-    
+
     data = json.loads(result.stdout)
     assert len(data["sheets"]) == 1
     assert data["sheets"][0]["name"] == "Sheet1"
@@ -86,7 +86,7 @@ def test_cli_error_missing_file():
 
 def test_cli_error_invalid_config():
     result = subprocess.run(
-        CLI_CMD + ["--capture-description"], # Missing --table-header-level
+        CLI_CMD + ["--capture-description"],  # Missing --table-header-level
         input="",
         capture_output=True,
         text=True,
@@ -150,4 +150,3 @@ def test_cli_no_strip_whitespace():
     data = json.loads(result.stdout)
     # With strip disabled, spaces persist
     assert data[0]["rows"][0] == ["  Value  "]
-

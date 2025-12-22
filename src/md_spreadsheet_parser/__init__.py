@@ -1,7 +1,7 @@
 from .parsing import (
-    parse_table, 
-    parse_sheet, 
-    parse_workbook, 
+    parse_table,
+    parse_sheet,
+    parse_workbook,
     scan_tables,
 )
 from .loader import (

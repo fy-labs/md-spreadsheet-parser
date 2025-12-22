@@ -26,23 +26,68 @@ def clean_cell(cell: str, schema: ParsingSchema) -> str:
 
     return cell
 
+    return cell
+
+
+def split_row_gfm(line: str, separator: str) -> list[str]:
+    """
+    Split a line by separator, respecting GFM rules:
+    - Ignore separators inside inline code (backticks).
+    - Ignore escaped separators.
+    """
+    parts: list[str] = []
+    current_part: list[str] = []
+    in_code = False
+    i = 0
+    n = len(line)
+
+    while i < n:
+        char = line[i]
+
+        if char == "\\":
+            # Escape character
+            # If we are NOT in code, this might be escaping the separator.
+            # We keep the backslash for clean_cell to handle (e.g. \| -> |).
+            # But we must treat the next specific char as literal for splitting purposes.
+            current_part.append(char)
+            if i + 1 < n:
+                # Add the next char unconditionally (skip separator check for it)
+                current_part.append(line[i + 1])
+                i += 2
+                continue
+            else:
+                # Trailing backslash
+                i += 1
+                continue
+
+        if char == "`":
+            in_code = not in_code
+
+        if char == separator and not in_code:
+            # Found a valid separator
+            parts.append("".join(current_part))
+            current_part = []
+        else:
+            current_part.append(char)
+
+        i += 1
+
+    # Append the last part
+    parts.append("".join(current_part))
+    return parts
+
 
 def parse_row(line: str, schema: ParsingSchema) -> list[str] | None:
     """
     Parse a single line into a list of cell values.
-    Handles escaped separators.
+    Handles escaped separators and GFM validation (pipes in code).
     """
     line = line.strip()
     if not line:
         return None
 
-    # Use regex to split by separator, but ignore escaped separators.
-    # Pattern: (?<!\\)SEPARATOR
-    # We must escape the separator itself for regex usage.
-    sep_pattern = re.escape(schema.column_separator)
-    pattern = f"(?<!\\\\){sep_pattern}"
-
-    parts = re.split(pattern, line)
+    # Use state-aware splitter instead of regex
+    parts = split_row_gfm(line, schema.column_separator)
 
     # Handle outer pipes if present
     # If the line starts/ends with a separator (and it wasn't escaped),

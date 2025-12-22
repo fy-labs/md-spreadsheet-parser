@@ -15,6 +15,10 @@ theme:
 plugins:
   - search
   - include-markdown
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: iso_date
+      timezone: Asia/Tokyo
   - mkdocstrings:
       handlers:
         python:

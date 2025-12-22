@@ -55,6 +55,7 @@ dev = [
     "pydantic>=2.12.5",
     "pandas>=2.3.3",
     "pandas-stubs>=2.2.0",
+    "mkdocs-git-revision-date-localized-plugin>=1.2.0",
     "pyright>=1.1.407",
 ]
 

@@ -5,7 +5,7 @@
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" />
   </a>
   <a href="https://pypi.org/project/md-spreadsheet-parser/">
-    <img src="https://img.shields.io/badge/pypi-v0.4.3-blue" alt="PyPI" />
+    <img src="https://img.shields.io/badge/pypi-v0.5.0-blue" alt="PyPI" />
   </a>
   <a href="https://pepy.tech/projects/md-spreadsheet-parser"><img src="https://static.pepy.tech/personalized-badge/md-spreadsheet-parser?period=total&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads" alt="PyPI Downloads"></a>
   <a href="https://github.com/f-y/md-spreadsheet-parser">
@@ -32,7 +32,6 @@
 - [Installation](#installation)
 - [Usage](#usage)
     - [1. Basic Parsing](#1-basic-parsing)
-    - [GFM Feature Support](#gfm-feature-support)
     - [2. Type-Safe Validation](#2-type-safe-validation-recommended)
         - [Pydantic Integration](#pydantic-integration)
     - [3. JSON & Dictionary Conversion](#3-json--dictionary-conversion)

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0] - 2025-12-22
+
+### 🚀 New Features
+
+Implemented support for GitHub Flavored Markdown (GFM) table alignment syntax (e.g. `| :--- | :---: | ---: |`).
+The `Table` model now has an `alignments` attribute, and the parser/generator preserves this information during round-trip operations.
+
+### 🐛 Bug Fixes
+
+Implemented compliant GFM pipe handling. The parser now correctly treats pipes inside inline code blocks (e.g., `` `|` ``) as literal text rather than column separators.
+This involved replacing the internal regex-based row splitter with a new state-aware parsing logic.
+
 ## [0.4.3] - 2025-12-22
 
 ### 📚 Documentation

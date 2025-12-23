@@ -6,11 +6,12 @@ This guide provides immediate solutions for common tasks.
 1. [Installation](#1-installation)
 2. [Read Tables from File](#2-read-tables-from-file-recommended)
 3. [Read Table from Text](#3-read-table-from-text-simple)
-4. [Excel / Pandas Integration](#4-excel--pandas-integration)
-5. [Programmatic Editing](#5-programmatic-editing-excel-like)
-6. [Formatting & Linting](#6-formatting--linting)
-7. [JSON Conversion](#7-json-conversion)
-8. [Type-Safe Validation](#8-type-safe-validation)
+4. [Excel Integration](#4-excel-integration)
+5. [Pandas Integration](#5-pandas-integration)
+6. [Programmatic Editing](#6-programmatic-editing-excel-like)
+7. [Formatting & Linting](#7-formatting--linting)
+8. [JSON Conversion](#8-json-conversion)
+9. [Type-Safe Validation](#9-type-safe-validation)
 
 ## 1. Installation
 
@@ -60,9 +61,7 @@ print(table.headers) # ['ID', 'Name']
 print(table.rows[0]) # ['1', 'Alice']
 ```
 
-## 4. Excel / Pandas Integration
-
-This library acts as a bridge between Markdown and Data Science tools.
+## 4. Excel Integration
 
 ### Excel (TSV/CSV) → Markdown
 
@@ -119,6 +118,10 @@ table = parse_excel(ws, ExcelParsingSchema(header_rows=2))
 print(table.to_markdown())
 ```
 
+## 5. Pandas Integration
+
+This library acts as a bridge between Markdown and Data Science tools.
+
 ### Markdown -> Pandas DataFrame
 
 Convert parsed tables directly to a list of dictionaries, which Pandas can ingest.
@@ -165,7 +168,7 @@ print(table.to_markdown())
 # | 2 | Bob |
 ```
 
-## 5. Programmatic Editing (Excel-like)
+## 6. Programmatic Editing (Excel-like)
 
 You can load a table, modify values based on logic (e.g., formulas), and save it back.
 
@@ -197,7 +200,7 @@ updated_table = Table(headers=table.headers, rows=new_rows)
 print(updated_table.to_markdown())
 ```
 
-## 6. Formatting & Linting
+## 7. Formatting & Linting
 
 Read a messy, misaligned Markdown table and output it perfectly formatted.
 
@@ -222,7 +225,7 @@ print(table.to_markdown())
 # | Bob | 25 |
 ```
 
-## 7. JSON Conversion
+## 8. JSON Conversion
 
 Convert a table directly to a JSON string or list of dictionaries for API usage.
 
@@ -251,7 +254,7 @@ print(json.dumps(data, indent=2))
 # ]
 ```
 
-## 8. Type-Safe Validation
+## 9. Type-Safe Validation
 
 Convert loose text into strongly-typed Python objects.
 

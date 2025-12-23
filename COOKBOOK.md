@@ -6,7 +6,7 @@ This guide provides immediate solutions for common tasks.
 1. [Installation](#1-installation)
 2. [Read Tables from File](#2-read-tables-from-file-recommended)
 3. [Read Table from Text](#3-read-table-from-text-simple)
-4. [Pandas / Excel Integration](#4-pandas--excel-integration)
+4. [Excel / Pandas Integration](#4-excel--pandas-integration)
 5. [Programmatic Editing](#5-programmatic-editing-excel-like)
 6. [Formatting & Linting](#6-formatting--linting)
 7. [JSON Conversion](#7-json-conversion)
@@ -60,9 +60,64 @@ print(table.headers) # ['ID', 'Name']
 print(table.rows[0]) # ['1', 'Alice']
 ```
 
-## 4. Pandas / Excel Integration
+## 4. Excel / Pandas Integration
 
 This library acts as a bridge between Markdown and Data Science tools.
+
+### Excel (TSV/CSV) → Markdown
+
+**This is the easiest method!** Just copy cells from Excel and paste them as a string.
+
+Convert Excel-exported TSV or CSV data to Markdown. Handles merged headers and in-cell newlines.
+
+```python
+from md_spreadsheet_parser import parse_excel, ExcelParsingSchema
+
+# Paste your Excel data (TSV format)
+tsv_data = """
+ID\tName\tNotes
+1\tAlice\t"Lines
+include
+newlines"
+2\tBob\tSimple
+""".strip()
+
+table = parse_excel(tsv_data)
+print(table.to_markdown())
+```
+
+**With Merged Headers (Forward-Fill)**
+```python
+# Excel merged cells export as: "Category\t\t\tInfo"
+tsv = "Category\t\t\tInfo\nA\tB\tC\tD"
+table = parse_excel(tsv)
+# Headers: ["Category", "Category", "Category", "Info"]
+```
+
+**With 2-Row Hierarchical Headers**
+```python
+# Parent row: "Info\t\tMetrics\t"
+# Child row:  "Name\tID\tScore\tRank"
+tsv = "Info\t\tMetrics\t\nName\tID\tScore\tRank\nAlice\t001\t95\t1"
+table = parse_excel(tsv, ExcelParsingSchema(header_rows=2))
+# Headers: ["Info - Name", "Info - ID", "Metrics - Score", "Metrics - Rank"]
+```
+
+### Excel (.xlsx) → Markdown (with openpyxl)
+
+If you have `openpyxl` installed, you can pass Worksheets directly.
+
+```python
+# pip install openpyxl  # User-managed dependency
+import openpyxl
+from md_spreadsheet_parser import parse_excel, ExcelParsingSchema
+
+wb = openpyxl.load_workbook("report.xlsx", data_only=True)
+ws = wb["SalesData"]  # Select sheet by name
+
+table = parse_excel(ws, ExcelParsingSchema(header_rows=2))
+print(table.to_markdown())
+```
 
 ### Markdown -> Pandas DataFrame
 
@@ -108,61 +163,6 @@ print(table.to_markdown())
 # | --- | --- |
 # | 1 | Alice |
 # | 2 | Bob |
-```
-
-### Excel (.xlsx) → Markdown (with openpyxl)
-
-If you have `openpyxl` installed, you can pass Worksheets directly.
-
-```python
-# pip install openpyxl  # User-managed dependency
-import openpyxl
-from md_spreadsheet_parser import parse_excel, ExcelParsingSchema
-
-wb = openpyxl.load_workbook("report.xlsx", data_only=True)
-ws = wb["SalesData"]  # Select sheet by name
-
-table = parse_excel(ws, ExcelParsingSchema(header_rows=2))
-print(table.to_markdown())
-```
-
-### Excel (TSV/CSV) → Markdown
-
-**This is the easiest method!** Just copy cells from Excel and paste them as a string.
-
-Convert Excel-exported TSV or CSV data to Markdown. Handles merged headers and in-cell newlines.
-
-```python
-from md_spreadsheet_parser import parse_excel, ExcelParsingSchema
-
-# Paste your Excel data (TSV format)
-tsv_data = """
-ID\tName\tNotes
-1\tAlice\t"Lines
-include
-newlines"
-2\tBob\tSimple
-""".strip()
-
-table = parse_excel(tsv_data)
-print(table.to_markdown())
-```
-
-**With Merged Headers (Forward-Fill)**
-```python
-# Excel merged cells export as: "Category\t\t\tInfo"
-tsv = "Category\t\t\tInfo\nA\tB\tC\tD"
-table = parse_excel(tsv)
-# Headers: ["Category", "Category", "Category", "Info"]
-```
-
-**With 2-Row Hierarchical Headers**
-```python
-# Parent row: "Info\t\tMetrics\t"
-# Child row:  "Name\tID\tScore\tRank"
-tsv = "Info\t\tMetrics\t\nName\tID\tScore\tRank\nAlice\t001\t95\t1"
-table = parse_excel(tsv, ExcelParsingSchema(header_rows=2))
-# Headers: ["Info - Name", "Info - ID", "Metrics - Score", "Metrics - Rank"]
 ```
 
 ## 5. Programmatic Editing (Excel-like)

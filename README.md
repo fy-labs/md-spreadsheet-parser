@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <strong>A robust, zero-dependency Python library for parsing, validating, and manipulating Markdown tables.</strong>
+  <strong>A robust, zero-dependency Python library for converting Excel to Markdown, parsing tables, and type-safe validation.</strong>
 </p>
 
 ---
@@ -36,14 +36,15 @@
         - [Pydantic Integration](#pydantic-integration)
     - [3. JSON & Dictionary Conversion](#3-json--dictionary-conversion)
     - [4. Pandas Integration & Export](#4-pandas-integration--export)
-    - [5. Markdown Generation](#5-markdown-generation-round-trip)
-    - [6. Advanced Features](#6-advanced-features)
-    - [7. Advanced Type Conversion](#7-advanced-type-conversion)
-    - [8. Robustness](#8-robustness-handling-malformed-tables)
-    - [9. In-Cell Line Break Support](#9-in-cell-line-break-support)
-    - [10. Performance & Scalability (Streaming API)](#10-performance--scalability-streaming-api)
-    - [11. Programmatic Manipulation](#11-programmatic-manipulation)
-    - [12. Visual Metadata Persistence](#12-visual-metadata-persistence)
+    - [5. Excel Import](#5-excel-import)
+    - [6. Markdown Generation](#6-markdown-generation-round-trip)
+    - [7. Advanced Features](#7-advanced-features)
+    - [8. Advanced Type Conversion](#8-advanced-type-conversion)
+    - [9. Robustness](#9-robustness-handling-malformed-tables)
+    - [10. In-Cell Line Break Support](#10-in-cell-line-break-support)
+    - [11. Performance & Scalability (Streaming API)](#11-performance--scalability-streaming-api)
+    - [12. Programmatic Manipulation](#12-programmatic-manipulation)
+    - [13. Visual Metadata Persistence](#13-visual-metadata-persistence)
     - [Command Line Interface (CLI)](#command-line-interface-cli)
 - [Configuration](#configuration)
 - [Future Roadmap](#future-roadmap)
@@ -60,6 +61,7 @@
 - **Multi-Table Workbooks**: Support for parsing multiple sheets and tables from a single file, including metadata.
 - **JSON & Dict Support**: Column-level JSON parsing and direct conversion to `dict`/`TypedDict`.
 - **Pandas Integration**: seamlessly create DataFrames from markdown tables.
+- **Excel Import & Data Cleaning**: Convert Excel/TSV/CSV to Markdown with intelligent merged cell handling. Automatically flattens hierarchical headers and fills gaps, turning "dirty" spreadsheets into clean, structured data.
 - **JSON-Friendly**: Easy export to dictionaries/JSON for integration with other tools.
 
 ## Installation
@@ -404,7 +406,117 @@ print(json.dumps(workbook.json, indent=2))
 ```
 
 
-### 5. Markdown Generation (Round-Trip)
+### 5. Excel Import
+
+Import Excel data (via TSV/CSV or `openpyxl`) with intelligent handling of merged cells and hierarchical headers.
+
+> [!NOTE]
+> Importing from TSV/CSV text works with **zero dependencies**. Direct `.xlsx` file loading requires `openpyxl` (a user-managed optional dependency).
+
+**Basic Usage**
+
+🚀 **See the [Cookbook](https://github.com/f-y/md-spreadsheet-parser/blob/main/COOKBOOK.md) for more comprehensive recipes.**
+
+```python
+from md_spreadsheet_parser import parse_excel
+
+# From TSV/CSV (Zero Dependency)
+table = parse_excel("Name\tAge\nAlice\t30")
+
+# From .xlsx (requires openpyxl)
+import openpyxl
+wb = openpyxl.load_workbook("data.xlsx")
+table = parse_excel(wb.active)
+```
+
+**Merged Header Handling**
+
+When Excel exports merged cells, they appear as empty cells. The parser automatically forward-fills these gaps:
+
+```text
+Excel (merged headers):
+┌─────────────────────────────┬────────┐
+│      Category (3 cols)      │  Info  │
+├─────────┬─────────┬─────────┼────────┤
+│    A    │    B    │    C    │   D    │
+└─────────┴─────────┴─────────┴────────┘
+
+          ↓ parse_excel()
+
+Markdown:
+| Category | Category | Category | Info |
+|----------|----------|----------|------|
+| A        | B        | C        | D    |
+```
+
+**2-Row Hierarchical Headers**
+
+For complex headers with parent-child relationships, use `ExcelParsingSchema(header_rows=2)`:
+
+```text
+Excel (2-row header):
+┌───────────────────┬───────────────────┐
+│       Info        │      Metrics      │  ← Row 1 (Parent)
+├─────────┬─────────┼─────────┬─────────┤
+│  Name   │   ID    │  Score  │  Rank   │  ← Row 2 (Child)
+├─────────┼─────────┼─────────┼─────────┤
+│  Alice  │   001   │   95    │    1    │
+└─────────┴─────────┴─────────┴─────────┘
+
+          ↓ parse_excel(schema=ExcelParsingSchema(header_rows=2))
+
+Markdown:
+| Info - Name | Info - ID | Metrics - Score | Metrics - Rank |
+|-------------|-----------|-----------------|----------------|
+| Alice       | 001       | 95              | 1              |
+```
+
+> **Note:** Currently supports up to 2 header rows. For deeper hierarchies, pre-process your data before parsing.
+
+**Excel to Structured Objects (The "Killer" Feature)**
+
+Don't just convert to text—convert Excel directly to valid, type-safe Python objects in one step.
+
+```python
+@dataclass
+class SalesRecord:
+    category: str
+    item: str
+    amount: int  # Automatic string-to-int conversion
+
+# 1. Parse Excel (handles merged cells automatically)
+# 2. Validate & Convert to objects
+records = parse_excel(ws).to_models(SalesRecord)
+
+# Now you have clean, typed data
+assert records[0].amount == 1000
+```
+
+**Configuration**
+
+Use `ExcelParsingSchema` to customize parsing behavior:
+
+```python
+from md_spreadsheet_parser import parse_excel, ExcelParsingSchema
+
+schema = ExcelParsingSchema(
+    header_rows=2,
+    fill_merged_headers=True,
+    header_separator=" / "
+)
+
+table = parse_excel(source, schema)
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `header_rows` | `1` | Number of header rows (1 or 2). |
+| `fill_merged_headers` | `True` | Forward-fill empty header cells. |
+| `header_separator` | `" - "` | Separator for flattened 2-row headers. |
+| `delimiter` | `"\t"` | Column separator for TSV/CSV. |
+
+
+### 6. Markdown Generation (Round-Trip)
 
 You can modify parsed objects and convert them back to Markdown strings using `to_markdown()`. This enables a complete "Parse -> Modify -> Generate" workflow.
 

@@ -157,4 +157,14 @@ def generate_workbook_markdown(
         if i < len(workbook.sheets) - 1:
             lines.append("")  # Empty line between sheets
 
+    # Append Workbook Metadata if present
+    if workbook.metadata:
+        # Ensure separation from last sheet
+        if lines and lines[-1] != "":
+            lines.append("")
+
+        metadata_json = json.dumps(workbook.metadata)
+        comment = f"<!-- md-spreadsheet-workbook-metadata: {metadata_json} -->"
+        lines.append(comment)
+
     return "\n".join(lines)

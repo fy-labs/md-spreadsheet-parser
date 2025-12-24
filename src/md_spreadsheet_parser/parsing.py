@@ -454,6 +454,32 @@ def parse_workbook(
     """
     lines = markdown.split("\n")
     sheets: list[Sheet] = []
+    metadata: dict[str, Any] | None = None
+
+    # Check for Workbook metadata at the end of the file
+    # We scan backwards for the last non-empty line
+    if lines:
+        for i in range(len(lines) - 1, -1, -1):
+            line = lines[i].strip()
+            if not line:
+                continue
+
+            # Check if it matches workbook metadata pattern
+            wb_meta_match = re.match(
+                r"^<!-- md-spreadsheet-workbook-metadata: (.*) -->$", line
+            )
+            if wb_meta_match:
+                try:
+                    metadata = json.loads(wb_meta_match.group(1))
+                    # Remove this line and everything after it to avoid parsing it as part of the last sheet
+                    # But we must be careful: is it possible there's code block end ``` after it?
+                    # Usually metadata is top-level.
+                    lines = lines[:i]
+                except json.JSONDecodeError:
+                    pass
+            # Whether we found it or not, if we hit a non-empty line, we stop looking.
+            # Workbook metadata must be the very last significant element.
+            break
 
     # Find root marker
     start_index = 0
@@ -470,7 +496,7 @@ def parse_workbook(
                 found = True
                 break
         if not found:
-            return Workbook(sheets=[])
+            return Workbook(sheets=[], metadata=metadata)
 
     # Split by sheet headers
     header_prefix = "#" * schema.sheet_header_level + " "
@@ -544,7 +570,7 @@ def parse_workbook(
             )
         )
 
-    return Workbook(sheets=sheets)
+    return Workbook(sheets=sheets, metadata=metadata)
 
 
 def scan_tables(

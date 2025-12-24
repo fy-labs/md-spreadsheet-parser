@@ -51,6 +51,7 @@ class WorkbookJSON(TypedDict):
     """
 
     sheets: list[SheetJSON]
+    metadata: dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -413,9 +414,16 @@ class Workbook:
 
     Attributes:
         sheets (list[Sheet]): List of sheets in the workbook.
+        metadata (dict[str, Any] | None): Arbitrary metadata. Defaults to None.
     """
 
     sheets: list[Sheet]
+    metadata: dict[str, Any] | None = None
+
+    def __post_init__(self):
+        if self.metadata is None:
+            # Hack to allow default value for mutable type in frozen dataclass
+            object.__setattr__(self, "metadata", {})
 
     @property
     def json(self) -> WorkbookJSON:
@@ -425,7 +433,10 @@ class Workbook:
         Returns:
             WorkbookJSON: A dictionary containing the workbook data.
         """
-        return {"sheets": [s.json for s in self.sheets]}
+        return {
+            "sheets": [s.json for s in self.sheets],
+            "metadata": self.metadata if self.metadata is not None else {},
+        }
 
     def get_sheet(self, name: str) -> Sheet | None:
         """

@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.7.0] - 2025-12-24
+
+### 🚀 New Features
+
+### Workbook Metadata Support
+
+Added `metadata` field to the `Workbook` model, allowing arbitrary data storage at the workbook level. This aligns the `Workbook` model with `Sheet` and `Table` models.
+
+```python
+wb = Workbook(sheets=[], metadata={"author": "Alice"})
+# Metadata is persisted at the end of the file:
+# <!-- md-spreadsheet-workbook-metadata: {"author": "Alice"} -->
+```
+
+### 🐛 Bug Fixes
+
+### Excel Parsing Improvements
+
+- **Fix**: Improved hierarchical header flattening for vertically merged cells (e.g., prohibiting trailing separators like `Status - `).
+- **Enhancement**: Cleaner string conversion for Excel numbers; integer-floats (e.g., `1.0`) are now automatically converted to valid integers (`"1"`) instead of preserving the decimal (`"1.0"`).
+
 ## [0.6.0] - 2025-12-23
 
 ### 🚀 New Features

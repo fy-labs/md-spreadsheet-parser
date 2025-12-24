@@ -62,12 +62,23 @@ def _flatten_headers(
         parent = parent_row[i] if i < len(parent_row) else ""
         child = child_row[i] if i < len(child_row) else ""
 
-        if parent and parent != child:
+        if parent and child and parent != child:
             headers.append(f"{parent}{separator}{child}")
         else:
             headers.append(child if child else parent)
 
     return headers
+
+
+def _safe_str(value: Any) -> str:
+    """
+    Convert value to string, handling None and integer-floats cleanly.
+    """
+    if value is None:
+        return ""
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    return str(value)
 
 
 def parse_excel_text(
@@ -115,7 +126,7 @@ def parse_excel_text(
         raise ValueError(f"Invalid header_rows: {schema.header_rows}")
 
     # Convert data_rows to list[list[str]] ensuring all are strings
-    processed_rows = [[str(cell) if cell else "" for cell in row] for row in data_rows]
+    processed_rows = [[_safe_str(cell) for cell in row] for row in data_rows]
 
     return Table(headers=headers, rows=processed_rows)
 
@@ -147,8 +158,7 @@ def parse_excel(
         # At runtime, source is a Worksheet with iter_rows method
         ws: Any = source
         rows = [
-            [str(cell) if cell is not None else "" for cell in row]
-            for row in ws.iter_rows(values_only=True)
+            [_safe_str(cell) for cell in row] for row in ws.iter_rows(values_only=True)
         ]
 
     # Check for string (TSV/CSV content)

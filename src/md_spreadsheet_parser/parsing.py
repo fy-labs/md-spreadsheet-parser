@@ -457,29 +457,26 @@ def parse_workbook(
     metadata: dict[str, Any] | None = None
 
     # Check for Workbook metadata at the end of the file
-    # We scan backwards for the last non-empty line
-    if lines:
-        for i in range(len(lines) - 1, -1, -1):
-            line = lines[i].strip()
-            if not line:
-                continue
+    # Scan for Workbook metadata anywhere in the file
+    # We filter it out from the lines so it doesn't interfere with sheet content
+    filtered_lines: list[str] = []
+    wb_metadata_pattern = re.compile(
+        r"^<!-- md-spreadsheet-workbook-metadata: (.*) -->$"
+    )
 
-            # Check if it matches workbook metadata pattern
-            wb_meta_match = re.match(
-                r"^<!-- md-spreadsheet-workbook-metadata: (.*) -->$", line
-            )
-            if wb_meta_match:
-                try:
-                    metadata = json.loads(wb_meta_match.group(1))
-                    # Remove this line and everything after it to avoid parsing it as part of the last sheet
-                    # But we must be careful: is it possible there's code block end ``` after it?
-                    # Usually metadata is top-level.
-                    lines = lines[:i]
-                except json.JSONDecodeError:
-                    pass
-            # Whether we found it or not, if we hit a non-empty line, we stop looking.
-            # Workbook metadata must be the very last significant element.
-            break
+    for line in lines:
+        stripped = line.strip()
+        match = wb_metadata_pattern.match(stripped)
+        if match:
+            try:
+                metadata = json.loads(match.group(1))
+            except json.JSONDecodeError:
+                pass
+            # Skip adding this line to filtered_lines
+        else:
+            filtered_lines.append(line)
+
+    lines = filtered_lines
 
     # Find root marker
     start_index = 0

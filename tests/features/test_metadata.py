@@ -296,3 +296,26 @@ def test_sheet_and_table_metadata_integration():
     t_meta = sheet.tables[0].metadata
     assert t_meta is not None
     assert t_meta["visual"] == table_meta
+
+
+def test_workbook_metadata_followed_by_content():
+    """
+    Verify that workbook metadata is detected even if it is followed by other content.
+    """
+    markdown = """# Tables
+
+## Sheet1
+
+| A |
+|---|
+| 1 |
+
+<!-- md-spreadsheet-workbook-metadata: {"author": "Alice"} -->
+
+# Additional Document
+This is some appendix context.
+"""
+    wb = parse_workbook(markdown)
+    assert wb.metadata is not None
+    assert wb.metadata["author"] == "Alice"
+    assert len(wb.sheets) == 1

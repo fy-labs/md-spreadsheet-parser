@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.2] - 2025-12-27
+
+### 🚀 New Features
+
+Add GitHub Actions workflows for PyPI and TestPyPI publishing.
+
 ## [0.7.1] - 2025-12-24
 
 ### 🐛 Bug Fixes

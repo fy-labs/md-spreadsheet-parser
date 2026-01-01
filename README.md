@@ -870,11 +870,6 @@ By combining a high-performance editor with this robust parser, we aim to solve 
 *   **For Humans**: Edit data with a comfortable, familiar UI (cell formatting, improved navigation, visual feedback).
 *   **For Machines**: Data is saved as clean, diff-able Markdown that this library can parse, validate, and convert into Python objects instantaneously.
 
-**Upcoming Features**
-We are actively working on:
-- **Visual Styling**: Conditional formatting and highlighters.
-- **Rich Data Hints**: Define column behaviors (Dropdowns, Date Pickers) that the editor enforces and the parser validates.
-
 ## License
 
 This project is licensed under the [MIT License](https://github.com/f-y/md-spreadsheet-parser/blob/main/LICENSE).

@@ -1,0 +1,1 @@
+{% include "../COOKBOOK.ja.md" %}

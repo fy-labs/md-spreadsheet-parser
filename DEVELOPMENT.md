@@ -143,3 +143,27 @@ uv run --python 3.12 python scripts/build_pyc_wheel.py
 ```
 
 This will generate a `.whl` in `dist/piodide/` that is optimized for Pyodide 0.26+ (running Python 3.12). This wheel should be copied to the VS Code extension's `resources/` directory.
+
+## 8. Documentation & i18n
+
+We support bilingual documentation (English and Japanese) using `mkdocs-static-i18n`.
+
+### Directory Structure (Proxy Pattern)
+To ensure documentation is visible on GitHub while maintaining a clean MkDocs structure, we use a "Root Source, Docs Proxy" pattern for key files:
+
+*   **Source of Truth**: Located in the project root.
+    *   `README.md` / `README.ja.md`
+    *   `COOKBOOK.md` / `COOKBOOK.ja.md`
+*   **MkDocs Proxy**: Located in `docs/`, taking advantage of `mkdocs-include-markdown-plugin`.
+    *   `docs/index.md` -> includes `../README.md`
+    *   `docs/index.ja.md` -> includes `../README.ja.md`
+    *   `docs/COOKBOOK.md` -> includes `../COOKBOOK.md` (Note: Ensure sync if not already proxy)
+
+### Adding Translations
+When updating documentation, please attempt to update both English and Japanese versions. If you cannot provide a translation:
+1.  Copy the English content to the `*.ja.md` file.
+2.  Add a `> [!NOTE]` indicating that the content is not yet translated.
+
+### Naming Convention
+*   English (Default): `filename.md`
+*   Japanese: `filename.ja.md`

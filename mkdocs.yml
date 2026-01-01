@@ -7,6 +7,9 @@ repo_name: f-y/md-spreadsheet-parser
 theme:
   name: material
   custom_dir: docs/overrides
+  language: en
+  icon:
+    alternate: material/earth
   features:
     - navigation.sections
     - navigation.expand
@@ -15,6 +18,15 @@ theme:
 plugins:
   - search
   - include-markdown
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: en
+          default: true
+          name: English
+        - locale: ja
+          name: 日本語
+
   - git-revision-date-localized:
       enable_creation_date: true
       type: iso_date
@@ -26,6 +38,16 @@ plugins:
           options:
             show_root_heading: true
             show_source: true
+
+
+extra:
+  alternate:
+    - name: English
+      link: ./
+      lang: en
+    - name: 日本語
+      link: ./ja/
+      lang: ja
 
 nav:
   - Home: index.md

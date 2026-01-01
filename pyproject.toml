@@ -59,6 +59,7 @@ dev = [
     "mkdocs-git-revision-date-localized-plugin>=1.2.0",
     "pyright>=1.1.407",
     "openpyxl>=3.1.5",
+    "mkdocs-static-i18n>=1.2.0",
 ]
 
 [tool.pyright]

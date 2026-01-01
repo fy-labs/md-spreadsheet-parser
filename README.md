@@ -26,6 +26,10 @@
 
 🚀 **Need a quick solution?** Check out the [Cookbook](https://github.com/f-y/md-spreadsheet-parser/blob/main/COOKBOOK.md) for copy-pasteable recipes (Excel conversion, Pandas integration, Markdown table manipulation, and more).
 
+Read in Japanese: 日本語版はこちら(
+<a href="README.ja.md">README</a>, <a href="COOKBOOK.ja.md">Cookbook</a>
+)
+
 ## Table of Contents
 
 - [Features](#features)

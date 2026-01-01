@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.8.1] - 2026-01-01
+
+### 🚀 New Features
+
+# i18n support and Japanese documentation
+
+Added Japanese translation for `README.md` and `COOKBOOK.md`.
+Configured `mkdocs-static-i18n` to support bilingual documentation (English/Japanese).
+Added language switcher with globe icon to the documentation site.
+
+### 🔧 Maintenance
+
+### Tests
+
+- Added robustness test `test_root_marker_robustness.py` to verify behavior when `# Tables` root marker is missing.
+
 ## [0.8.0] - 2025-12-30
 
 ### ⚠️ Breaking Changes

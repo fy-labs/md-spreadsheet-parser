@@ -27,7 +27,7 @@
 > [!IMPORTANT]
 > **🎉 Official GUI Editor Released: [PengSheets](https://marketplace.visualstudio.com/items?itemName=f-y.peng-sheets)**
 >
-> We have transformed this library into a full Excel-like interface for VS Code. Edit Markdown tables with sort, filter, and easy navigation directly in your editor.
+> We have transformed this library into an Excel-like interface for VS Code. Edit Markdown tables with sort, filter, and easy navigation directly in your editor.
 >
 > [![Get it on VS Code Marketplace](https://img.shields.io/badge/Get%20it%20on-VS%20Code%20Marketplace-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=f-y.peng-sheets)
 

@@ -1,0 +1,36 @@
+{
+    "name": "md-spreadsheet-parser",
+    "version": "1.0.0",
+    "description": "A robust Markdown table parser and manipulator, powered by Python and WebAssembly.",
+    "main": "src/index.ts",
+    "types": "src/index.ts",
+    "type": "module",
+    "scripts": {
+        "build": "node scripts/build.mjs",
+        "test": "node scripts/test.mjs"
+    },
+    "files": [
+        "dist",
+        "src"
+    ],
+    "keywords": [
+        "markdown",
+        "spreadsheet",
+        "parser",
+        "wasm",
+        "webassembly",
+        "python"
+    ],
+    "author": "f-y",
+    "license": "MIT",
+    "devDependencies": {
+        "@bytecodealliance/jco": "^1.0.0",
+        "@bytecodealliance/preview2-shim": "^0.17.0",
+        "typescript": "^5.9.3",
+        "zod": "^4.3.4"
+    },
+    "dependencies": {
+        "execa": "^9.6.1",
+        "shelljs": "^0.10.0"
+    }
+}

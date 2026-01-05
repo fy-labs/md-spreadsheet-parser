@@ -24,9 +24,8 @@ def generate_table_markdown(
 
     # Handle metadata (name and description) if MultiTableParsingSchema
     if isinstance(schema, MultiTableParsingSchema):
-        table_level = schema.table_header_level
-        if table.name and table_level is not None:
-            lines.append(f"{'#' * table_level} {table.name}")
+        if table.name and schema.table_header_level is not None:
+            lines.append(f"{'#' * schema.table_header_level} {table.name}")
             lines.append("")  # Empty line after name
 
         if table.description and schema.capture_description:
@@ -34,8 +33,7 @@ def generate_table_markdown(
             lines.append("")  # Empty line after description
 
     # Build table
-    column_separator = list(schema.column_separator or "|")
-    sep = f" {schema.column_separator or '|'} "
+    sep = f" {schema.column_separator} "
 
     def _prepare_cell(cell: str) -> str:
         """Prepare cell for markdown generation."""
@@ -49,12 +47,13 @@ def generate_table_markdown(
         processed_headers = [_prepare_cell(h) for h in table.headers]
         header_row = sep.join(processed_headers)
         if schema.require_outer_pipes:
-            header_row = f"{schema.column_separator or '|'} {header_row} {schema.column_separator or '|'}"
+            header_row = (
+                f"{schema.column_separator} {header_row} {schema.column_separator}"
+            )
         lines.append(header_row)
 
         # Separator row
         separator_cells = []
-        separator_char = schema.header_separator_char or "-"
         for i, _ in enumerate(table.headers):
             alignment = "default"
             if table.alignments and i < len(table.alignments):
@@ -64,20 +63,22 @@ def generate_table_markdown(
             # Construct separator cell based on alignment
             # Use 3 hyphens as base
             if alignment == "left":
-                cell = ":" + separator_char * 3
+                cell = ":" + schema.header_separator_char * 3
             elif alignment == "right":
-                cell = separator_char * 3 + ":"
+                cell = schema.header_separator_char * 3 + ":"
             elif alignment == "center":
-                cell = ":" + separator_char * 3 + ":"
+                cell = ":" + schema.header_separator_char * 3 + ":"
             else:
                 # default
-                cell = separator_char * 3
+                cell = schema.header_separator_char * 3
 
             separator_cells.append(cell)
 
         separator_row = sep.join(separator_cells)
         if schema.require_outer_pipes:
-            separator_row = f"{schema.column_separator or '|'} {separator_row} {schema.column_separator or '|'}"
+            separator_row = (
+                f"{schema.column_separator} {separator_row} {schema.column_separator}"
+            )
         lines.append(separator_row)
 
     # Rows
@@ -85,7 +86,7 @@ def generate_table_markdown(
         processed_row = [_prepare_cell(cell) for cell in row]
         row_str = sep.join(processed_row)
         if schema.require_outer_pipes:
-            row_str = f"{schema.column_separator or '|'} {row_str} {schema.column_separator or '|'}"
+            row_str = f"{schema.column_separator} {row_str} {schema.column_separator}"
         lines.append(row_str)
 
     # Append Metadata if present
@@ -114,8 +115,7 @@ def generate_sheet_markdown(
     lines = []
 
     if isinstance(schema, MultiTableParsingSchema):
-        sheet_level = schema.sheet_header_level or 2
-        lines.append(f"{'#' * sheet_level} {sheet.name}")
+        lines.append(f"{'#' * schema.sheet_header_level} {sheet.name}")
         lines.append("")
 
     for i, table in enumerate(sheet.tables):

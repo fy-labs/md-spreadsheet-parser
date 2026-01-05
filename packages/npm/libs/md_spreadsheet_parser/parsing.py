@@ -21,9 +21,8 @@ def clean_cell(cell: str, schema: ParsingSchema) -> str:
     # Unescape the column separator (e.g. \| -> |)
     # We also need to handle \\ -> \
     # Simple replacement for now: replace \<sep> with <sep>
-    col_sep = schema.column_separator or "|"
     if "\\" in cell:
-        cell = cell.replace(f"\\{col_sep}", col_sep)
+        cell = cell.replace(f"\\{schema.column_separator}", schema.column_separator)
 
     return cell
 
@@ -301,7 +300,7 @@ def _extract_tables_simple(
         block_text = "\n".join(current_block)
         if (
             schema.column_separator in block_text
-            or "<!-- md-spreadsheet-table-metadata:" in block_text
+            or "<!-- md-spreadsheet-metadata:" in block_text
         ):
             table = parse_table(block_text, schema)
             if table.rows or table.headers:

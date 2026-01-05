@@ -1,0 +1,2 @@
+[console_scripts]
+md-spreadsheet-parser = md_spreadsheet_parser.cli:main

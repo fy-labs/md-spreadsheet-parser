@@ -359,7 +359,7 @@ class WitGenerator:
 
             adapter_lines.append(f"    res.{name} = {transformation}")
 
-        adapter_lines.append(f"    return res")
+        adapter_lines.append("    return res")
         adapter_lines.append("")
 
         # WIT -> Python Adapter (unwrap_...)

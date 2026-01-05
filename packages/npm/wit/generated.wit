@@ -1,0 +1,95 @@
+package example:spreadsheet;
+
+interface types {
+    type alignment-type = string;
+    
+    record table {
+        headers: option<list<string>>,
+        rows: list<list<string>>,
+        alignments: option<list<alignment-type>>,
+        name: option<string>,
+        description: option<string>,
+        metadata: option<string>,
+        start-line: option<s32>,
+        end-line: option<s32>,
+    }
+    
+    record sheet {
+        name: string,
+        tables: list<table>,
+        metadata: option<string>,
+    }
+    
+    record workbook {
+        sheets: list<sheet>,
+        metadata: option<string>,
+    }
+    
+    record parsing-schema {
+        column-separator: option<string>,
+        header-separator-char: option<string>,
+        require-outer-pipes: option<bool>,
+        strip-whitespace: option<bool>,
+        convert-br-to-newline: option<bool>,
+    }
+    
+    record multi-table-parsing-schema {
+        column-separator: option<string>,
+        header-separator-char: option<string>,
+        require-outer-pipes: option<bool>,
+        strip-whitespace: option<bool>,
+        convert-br-to-newline: option<bool>,
+        root-marker: option<string>,
+        sheet-header-level: option<s32>,
+        table-header-level: option<s32>,
+        capture-description: option<bool>,
+    }
+    
+    record conversion-schema {
+        boolean-pairs: option<string>,
+        custom-converters: option<string>,
+        field-converters: option<string>,
+    }
+    
+    record excel-parsing-schema {
+        header-rows: option<s32>,
+        fill-merged-headers: option<bool>,
+        delimiter: option<string>,
+        header-separator: option<string>,
+    }
+    
+}
+
+world spreadsheet-parser {
+    use types.{alignment-type, conversion-schema, excel-parsing-schema, multi-table-parsing-schema, parsing-schema, sheet, table, workbook};
+    export clean-cell: func(cell: string, schema: parsing-schema) -> string;
+    export split-row-gfm: func(line: string, separator: string) -> list<string>;
+    export parse-row: func(line: string, schema: parsing-schema) -> option<list<string>>;
+    export parse-separator-row: func(row: list<string>, schema: parsing-schema) -> option<list<alignment-type>>;
+    export is-separator-row: func(row: list<string>, schema: parsing-schema) -> bool;
+    export parse-table: func(markdown: string, schema: option<parsing-schema>) -> table;
+    export parse-sheet: func(markdown: string, name: string, schema: multi-table-parsing-schema, start-line-offset: option<s32>) -> sheet;
+    export parse-workbook: func(markdown: string, schema: option<multi-table-parsing-schema>) -> workbook;
+    export scan-tables: func(markdown: string, schema: option<multi-table-parsing-schema>) -> list<table>;
+    export generate-table-markdown: func(table: table, schema: option<parsing-schema>) -> string;
+    export generate-sheet-markdown: func(sheet: sheet, schema: option<parsing-schema>) -> string;
+    export generate-workbook-markdown: func(workbook: workbook, schema: multi-table-parsing-schema) -> string;
+    export parse-table-from-file: func(source: string, schema: option<parsing-schema>) -> table;
+    export parse-workbook-from-file: func(source: string, schema: option<multi-table-parsing-schema>) -> workbook;
+    export scan-tables-from-file: func(source: string, schema: option<multi-table-parsing-schema>) -> list<table>;
+    export scan-tables-iter: func(source: string, schema: option<multi-table-parsing-schema>) -> string;
+    export table-to-models: func(self-obj: table, schema-cls: string, conversion-schema: option<conversion-schema>) -> list<string>;
+    export table-to-markdown: func(self-obj: table, schema: option<parsing-schema>) -> string;
+    export table-update-cell: func(self-obj: table, row-idx: s32, col-idx: s32, value: string) -> table;
+    export table-delete-row: func(self-obj: table, row-idx: s32) -> table;
+    export table-delete-column: func(self-obj: table, col-idx: s32) -> table;
+    export table-clear-column-data: func(self-obj: table, col-idx: s32) -> table;
+    export table-insert-row: func(self-obj: table, row-idx: s32) -> table;
+    export table-insert-column: func(self-obj: table, col-idx: s32) -> table;
+    export sheet-get-table: func(self-obj: sheet, name: string) -> option<table>;
+    export sheet-to-markdown: func(self-obj: sheet, schema: option<parsing-schema>) -> string;
+    export workbook-get-sheet: func(self-obj: workbook, name: string) -> option<sheet>;
+    export workbook-to-markdown: func(self-obj: workbook, schema: multi-table-parsing-schema) -> string;
+    export workbook-add-sheet: func(self-obj: workbook, name: string) -> workbook;
+    export workbook-delete-sheet: func(self-obj: workbook, index: s32) -> workbook;
+}

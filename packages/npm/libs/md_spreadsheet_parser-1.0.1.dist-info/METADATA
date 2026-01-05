@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: md-spreadsheet-parser
-Version: 1.0.0
+Version: 1.0.1
 Summary: A robust, zero-dependency Python library for parsing, validating, and manipulating Markdown tables, including conversion from Excel to Markdown.
 Project-URL: Homepage, https://f-y.github.io/md-spreadsheet-parser/
 Project-URL: Repository, https://github.com/f-y/md-spreadsheet-parser
@@ -48,7 +48,7 @@ Description-Content-Type: text/markdown
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" />
   </a>
   <a href="https://pypi.org/project/md-spreadsheet-parser/">
-    <img src="https://img.shields.io/badge/pypi-v1.0.0-blue" alt="PyPI" />
+    <img src="https://img.shields.io/badge/pypi-v1.0.1-blue" alt="PyPI" />
   </a>
   <a href="https://pepy.tech/projects/md-spreadsheet-parser"><img src="https://static.pepy.tech/personalized-badge/md-spreadsheet-parser?period=total&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads" alt="PyPI Downloads"></a>
   <a href="https://github.com/f-y/md-spreadsheet-parser">

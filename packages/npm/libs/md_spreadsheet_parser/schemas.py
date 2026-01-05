@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Callable, Any
+from typing import Any, Callable
 
 
 @dataclass(frozen=True)
@@ -20,6 +20,19 @@ class ParsingSchema:
     require_outer_pipes: bool = True
     strip_whitespace: bool = True
     convert_br_to_newline: bool = True
+
+    def __post_init__(self):
+        # Ensure defaults if None is passed (e.g. from WASM)
+        if self.column_separator is None:
+            object.__setattr__(self, "column_separator", "|")
+        if self.header_separator_char is None:
+            object.__setattr__(self, "header_separator_char", "-")
+        if self.require_outer_pipes is None:
+            object.__setattr__(self, "require_outer_pipes", True)
+        if self.strip_whitespace is None:
+            object.__setattr__(self, "strip_whitespace", True)
+        if self.convert_br_to_newline is None:
+            object.__setattr__(self, "convert_br_to_newline", True)
 
 
 # Default schema for standard Markdown tables (GFM style)
@@ -45,6 +58,27 @@ class MultiTableParsingSchema(ParsingSchema):
     capture_description: bool = True
 
     def __post_init__(self):
+        # Handle ParsingSchema defaults manually since they are separate fields in instance
+        if self.column_separator is None:
+            object.__setattr__(self, "column_separator", "|")
+        if self.header_separator_char is None:
+            object.__setattr__(self, "header_separator_char", "-")
+        if self.require_outer_pipes is None:
+            object.__setattr__(self, "require_outer_pipes", True)
+        if self.strip_whitespace is None:
+            object.__setattr__(self, "strip_whitespace", True)
+        if self.convert_br_to_newline is None:
+            object.__setattr__(self, "convert_br_to_newline", True)
+
+        # Handle Own fields
+        if self.root_marker is None:
+            object.__setattr__(self, "root_marker", "# Tables")
+        if self.sheet_header_level is None:
+            object.__setattr__(self, "sheet_header_level", 2)
+        # table_header_level can be None
+        if self.capture_description is None:
+            object.__setattr__(self, "capture_description", True)
+
         if self.capture_description and self.table_header_level is None:
             raise ValueError(
                 "capture_description=True requires table_header_level to be set"

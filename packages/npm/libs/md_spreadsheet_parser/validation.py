@@ -344,6 +344,5 @@ def validate_table(
         return _validate_table_dict(table, conversion_schema)  # type: ignore
 
     raise ValueError(
-        f"DEBUG: type={type(schema_cls)}, is_dataclass={is_dataclass(schema_cls)}. "
-        f"{schema_cls} must be a dataclass, Pydantic model, TypedDict, or dict. "
+        f"{schema_cls} must be a dataclass, Pydantic model, TypedDict, or dict"
     )

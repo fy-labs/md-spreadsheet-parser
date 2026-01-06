@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.5] - 2026-01-06
+
+### 🐛 Bug Fixes
+
+Reduced NPM package size by excluding redundant intermediate WASM files.
+
 ## [1.1.4] - 2026-01-06
 
 ### 🐛 Bug Fixes

@@ -89,7 +89,7 @@ world spreadsheet-parser {
     export sheet-get-table: func(self-obj: sheet, name: string) -> option<table>;
     export sheet-to-markdown: func(self-obj: sheet, schema: option<parsing-schema>) -> string;
     export workbook-get-sheet: func(self-obj: workbook, name: string) -> option<sheet>;
-    export workbook-to-markdown: func(self-obj: workbook, schema: multi-table-parsing-schema) -> string;
+    export workbook-to-markdown: func(self-obj: workbook, schema: option<multi-table-parsing-schema>) -> string;
     export workbook-add-sheet: func(self-obj: workbook, name: string) -> workbook;
     export workbook-delete-sheet: func(self-obj: workbook, index: s32) -> workbook;
 }

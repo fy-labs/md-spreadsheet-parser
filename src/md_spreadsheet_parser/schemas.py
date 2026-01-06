@@ -115,6 +115,9 @@ class ConversionSchema:
 DEFAULT_CONVERSION_SCHEMA = ConversionSchema()
 
 
+DEFAULT_MULTI_TABLE_SCHEMA = MultiTableParsingSchema()
+
+
 @dataclass(frozen=True)
 class ExcelParsingSchema:
     """

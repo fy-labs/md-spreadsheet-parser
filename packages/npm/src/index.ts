@@ -243,7 +243,7 @@ export class Workbook {
         return res ? new Sheet(res) : undefined;
     }
 
-    toMarkdown(schema: any): any {
+    toMarkdown(schema?: any): any {
         const dto = this.toDTO();
         const res = _workbookToMarkdown(dto, schema);
         return res;

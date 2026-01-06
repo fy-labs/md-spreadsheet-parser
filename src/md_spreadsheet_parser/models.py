@@ -8,6 +8,7 @@ from .generator import (
 )
 from .schemas import (
     DEFAULT_CONVERSION_SCHEMA,
+    DEFAULT_MULTI_TABLE_SCHEMA,
     DEFAULT_SCHEMA,
     ConversionSchema,
     MultiTableParsingSchema,
@@ -453,12 +454,14 @@ class Workbook:
                 return sheet
         return None
 
-    def to_markdown(self, schema: MultiTableParsingSchema) -> str:
+    def to_markdown(
+        self, schema: MultiTableParsingSchema = DEFAULT_MULTI_TABLE_SCHEMA
+    ) -> str:
         """
         Generates a Markdown string representation of the workbook.
 
         Args:
-            schema (MultiTableParsingSchema): Configuration for formatting.
+            schema (MultiTableParsingSchema, optional): Configuration for formatting.
 
         Returns:
             str: The Markdown string.

@@ -99,3 +99,16 @@ def test_table_clear_column_data():
     # Other column intact
     assert t2.rows[0][1] == "2"
     assert t2.rows[1][1] == "4"
+
+def test_workbook_to_markdown_defaults():
+    """
+    Test that Workbook.to_markdown can be called without arguments.
+    """
+    table = Table(headers=["A"], rows=[["1"]])
+    sheet = Sheet(name="Sheet1", tables=[table])
+    workbook = Workbook(sheets=[sheet])
+
+    # This should work without arguments now
+    markdown = workbook.to_markdown()
+    assert isinstance(markdown, str)
+    assert "# Tables" in markdown

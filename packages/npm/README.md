@@ -7,7 +7,7 @@
   </a>
 </p>
 
-**md-spreadsheet-parser** is a robust, zero-dependency Markdown table parser and manipulator for Node.js.
+**md-spreadsheet-parser** is a robust Markdown table parser and manipulator for Node.js.
 It is powered by the [Python Core](https://github.com/f-y/md-spreadsheet-parser) compiled to WebAssembly, ensuring 100% logic parity with the Python version while running natively in Node.js.
 
 ## Features

@@ -1,6 +1,6 @@
 
 import { execa } from 'execa';
-import { rm, mkdir, readFile } from 'node:fs/promises';
+import { rm, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -87,6 +87,21 @@ async function main() {
     // 5. Transpile (Create JS)
     console.log('--- Transpiling to JS ---');
     await run('npx', ['jco', 'transpile', 'dist/parser.wasm', '-o', 'dist']);
+
+    // 5.1 Post-process: Fix WASM fetch paths for Vite dev mode compatibility
+    console.log('--- Fixing WASM fetch paths for Vite compatibility ---');
+    const parserJsPath = join(pkgDir, 'dist', 'parser.js');
+    let parserJs = await readFile(parserJsPath, 'utf-8');
+
+    // Replace: fetch('./parser.core.wasm') -> fetch(new URL('./parser.core.wasm', import.meta.url))
+    // This pattern matches various forms like fetch('parser.core.wasm') or fetch('./parser.core.wasm')
+    const fetchPattern = /fetch\(\s*(['"])(\.\/)?(parser\.core\d*\.wasm)\1\s*\)/g;
+    parserJs = parserJs.replace(fetchPattern, (match, quote, prefix, filename) => {
+        return `fetch(new URL('./${filename}', import.meta.url))`;
+    });
+
+    await writeFile(parserJsPath, parserJs);
+    console.log('  Fixed WASM fetch paths to use import.meta.url');
 
     // 5.5 Cleanup intermediate WASM
     console.log('--- Removing intermediate WASM ---');

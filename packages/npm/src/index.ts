@@ -163,6 +163,23 @@ export class Table {
         return dto;
     }
 
+    /**
+     * Returns a JSON-compatible plain object representation.
+     * Mirrors Python's .json property.
+     */
+    get json(): any {
+        return {
+            name: this.name,
+            description: this.description,
+            headers: this.headers,
+            rows: this.rows,
+            metadata: this.metadata ?? {},
+            startLine: this.startLine,
+            endLine: this.endLine,
+            alignments: this.alignments,
+        };
+    }
+
     toModels(schemaCls: any, conversionSchema?: any): any {
         const dto = this.toDTO();
         const clientRes = clientSideToModels(this.headers, this.rows || [], schemaCls);
@@ -242,6 +259,18 @@ export class Sheet {
         return dto;
     }
 
+    /**
+     * Returns a JSON-compatible plain object representation.
+     * Mirrors Python's .json property.
+     */
+    get json(): any {
+        return {
+            name: this.name,
+            tables: (this.tables || []).map((t: any) => t.json ? t.json : t),
+            metadata: this.metadata ?? {},
+        };
+    }
+
     getTable(name: any): any {
         const dto = this.toDTO();
         const res = _sheetGetTable(dto, name);
@@ -271,6 +300,17 @@ export class Workbook {
         if (dto.sheets) dto.sheets = dto.sheets.map((x: any) => x.toDTO ? x.toDTO() : x);
         if (dto.metadata) dto.metadata = JSON.stringify(dto.metadata);
         return dto;
+    }
+
+    /**
+     * Returns a JSON-compatible plain object representation.
+     * Mirrors Python's .json property.
+     */
+    get json(): any {
+        return {
+            sheets: (this.sheets || []).map((s: any) => s.json ? s.json : s),
+            metadata: this.metadata ?? {},
+        };
     }
 
     getSheet(name: any): any {

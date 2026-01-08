@@ -811,6 +811,40 @@ class WitGenerator:
             content += "        return dto;\n"
             content += "    }\n"
 
+            # Generate json getter for Table, Sheet, Workbook
+            # This mirrors Python's .json property
+            if class_name in ["Table", "Sheet", "Workbook"]:
+                content += "\n    /**\n"
+                content += "     * Returns a JSON-compatible plain object representation.\n"
+                content += "     * Mirrors Python's .json property.\n"
+                content += "     */\n"
+                content += "    get json(): any {\n"
+                
+                if class_name == "Table":
+                    content += "        return {\n"
+                    content += "            name: this.name,\n"
+                    content += "            description: this.description,\n"
+                    content += "            headers: this.headers,\n"
+                    content += "            rows: this.rows,\n"
+                    content += "            metadata: this.metadata ?? {},\n"
+                    content += "            startLine: this.startLine,\n"
+                    content += "            endLine: this.endLine,\n"
+                    content += "            alignments: this.alignments,\n"
+                    content += "        };\n"
+                elif class_name == "Sheet":
+                    content += "        return {\n"
+                    content += "            name: this.name,\n"
+                    content += "            tables: (this.tables || []).map((t: any) => t.json ? t.json : t),\n"
+                    content += "            metadata: this.metadata ?? {},\n"
+                    content += "        };\n"
+                elif class_name == "Workbook":
+                    content += "        return {\n"
+                    content += "            sheets: (this.sheets || []).map((s: any) => s.json ? s.json : s),\n"
+                    content += "            metadata: this.metadata ?? {},\n"
+                    content += "        };\n"
+                
+                content += "    }\n"
+
             # Methods
             for m in info["methods"]:
                 mname = re.sub(r"_([a-z])", lambda g: g.group(1).upper(), m["name"])

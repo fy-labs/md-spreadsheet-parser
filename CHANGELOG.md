@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.1.9] - 2026-01-08
+
+### 🚀 New Features
+
+Added `json` getter to Table, Sheet, and Workbook classes in the NPM package.
+
+- The `json` getter mirrors Python's `.json` property
+- Returns a JSON-compatible plain object representation
+- Recursively converts nested models (e.g., Sheet.json includes all tables.json)
+
 ## [1.1.8] - 2026-01-07
 
 ### 🐛 Bug Fixes

@@ -13,12 +13,17 @@ flowchart TD
         Parsing[parsing.py]
     end
 
-    subgraph Generator ["Binding Generator (scripts/generate_wit.py)"]
+    subgraph Generator ["Modular Binding Generator"]
         Griffe[Griffe Analysis]
-        TypeMap[Type Mapper]
-        WitGen[WIT Generator]
-        AdapterGen[Adapter Generator]
-        AppGen[App Wrapper Generator]
+        Modules["generator/
+• name_converter.py
+• type_mapper.py
+• scanner.py
+• renderer.py"]
+        Templates["templates/
+• index.ts.jinja2
+• adapter.py.jinja2
+• app.py.jinja2"]
     end
 
     subgraph Build ["Build Pipeline"]
@@ -28,49 +33,58 @@ flowchart TD
 
     subgraph NPM ["NPM Package"]
         WASM[parser.wasm]
-        JS[parser.js (Auto-bindings)]
-        TS[src/index.ts (OO Wrapper)]
+        JS[parser.js]
+        TS[src/index.ts]
     end
 
     Models --> Griffe
     Parsing --> Griffe
-    Griffe --> Generator
-    Generator -->|Generate| Wit[generated.wit]
-    Generator -->|Generate| Adapter[generated_adapter.py]
-    Generator -->|Generate| App[src/app.py]
+    Griffe --> Modules
+    Modules --> Templates
+    Templates -->|Generate| Wit[wit/generated.wit]
+    Templates -->|Generate| Adapter[src/generated_adapter.py]
+    Templates -->|Generate| App[src/app.py]
+    Templates -->|Generate| TS
     
     Wit --> WasmTools
     Adapter --> WasmTools
     App --> WasmTools
-    Models --> WasmTools
     
     WasmTools --> WASM
     WASM --> JCO
     JCO --> JS
-    Generator -->|Generate| TS
     JS --> TS
 ```
 
-## 2. The Core Mechanism: Automated Binding Generation
+## 2. The Core Mechanism: Modular Binding Generation
 
-To guarantee 100% parity and zero drift, we do **not** manually write WIT files or TypeScript definitions. Instead, we use `scripts/generate_wit.py` to statically analyze the Python code.
+To guarantee 100% parity and zero drift, we use a **modular generator** architecture with Jinja2 templates.
 
-### 2.1 Static Analysis (Griffe)
+### 2.1 Generator Modules (`scripts/generator/`)
+
+| Module | Responsibility |
+|--------|---------------|
+| `name_converter.py` | Naming convention utilities (kebab-case, camelCase, snake_case) |
+| `type_mapper.py` | Python → WIT → TypeScript type mapping |
+| `scanner.py` | Griffe-based module/class/function discovery |
+| `renderer.py` | Jinja2 template rendering orchestration |
+
+### 2.2 Static Analysis (Griffe)
 We use `griffe` to parse the Python AST of `md_spreadsheet_parser`. It allows us to:
 - Discover all `dataclass` Models (`Table`, `Workbook`, `ParsingSchema`, etc.).
 - Inspect method signatures, type annotations, and default values.
 - Respect inheritance (e.g., `MultiTableParsingSchema` inherits `ParsingSchema`).
 
-### 2.2 The "Value-Type" Bridge
+### 2.3 The "Value-Type" Bridge
 WASM Components use the WIT (Wasm Interface Type) system, which primarily exchanges **Data** (Records/Structs), not **Objects** (Classes with methods).
 
 1.  **Python Models**: Are Class Instances with methods.
 2.  **WIT Records**: Are pure data structs.
 3.  **Adapter Layer**: `generated_adapter.py` converts between Python Objects and WIT Records. 
-    - `unwrap_*`: Converts WIT Records -> Python Objects (for function inputs).
-    - `convert_*`: Converts Python Objects -> WIT Records (for function outputs).
+    - `unwrap_*`: Converts WIT Records → Python Objects (for function inputs).
+    - `convert_*`: Converts Python Objects → WIT Records (for function outputs).
 
-### 2.3 Method Flattening & App Wrapper
+### 2.4 Method Flattening & App Wrapper
 Since WASM interfaces are flat functions, we "flatten" Python instance methods into standalone functions in `src/app.py`.
 
 **Original Python:**
@@ -89,96 +103,112 @@ def table_update_cell(self_obj: WitTable, row: int, col: int, value: str):
 
 ## 3. Preserving Python Semantics in TypeScript
 
-### 3.1 Fluent API & Mutation Simulation (Copy-In/Copy-Out)
+### 3.1 Fluent API & Mutation Simulation (Model Reconstruction Pattern)
+
 Python methods often mutate `self` and return `self` for fluent chaining.
-- **Problem**: WASM passes data by value. The struct returned by WASM is a *new copy*, not the original instance.
-- **Solution**: The generated TypeScript wrapper detects when a method returns instances of the same class and acts as a **Copy-In/Copy-Out** system.
+
+- **Problem**: WASM passes data by value. The struct returned by WASM is a *new copy*, not the original instance. Additionally, `metadata` comes back as a JSON string instead of a parsed object.
+- **Solution**: The generated TypeScript wrapper uses a **Model Reconstruction Pattern**: 
+  1. Call WASM and get the raw response
+  2. Create a new instance via constructor (which properly parses JSON fields and wraps nested models)
+  3. Assign the hydrated properties back to `this`
 
 **Generated TypeScript (`src/index.ts`):**
 ```typescript
 class Table {
-    updateCell(row: number, col: number, value: string): Table {
-        // 1. Call WASM (takes current state 'this', returns NEW state 'res')
-        const res = tableUpdateCell(this, row, col, value);
+    updateCell(rowIdx: number, colIdx: number, value: string): Table {
+        const dto = this.toDTO();
         
-        // 2. Hydrate 'this' with new state (simulating in-place mutation)
-        Object.assign(this, res);
+        // 1. Call WASM (takes current state, returns NEW state 'res')
+        const res = _tableUpdateCell(dto, rowIdx, colIdx, value);
         
-        // 3. Return 'this' to support chaining
+        // 2. Create properly hydrated instance via constructor
+        //    - Parses metadata JSON string → object
+        //    - Wraps nested models (sheets, tables, etc.)
+        const hydrated = new Table(res);
+        
+        // 3. Assign hydrated properties to 'this'
+        Object.assign(this, hydrated);
+        
+        // 4. Return 'this' to support chaining
         return this;
     }
 }
 ```
-This ensures `table.updateCell(...)` updates the `table` object in-place from the user's perspective, matching Python behavior.
+
+This ensures `table.updateCell(...)` updates the `table` object in-place from the user's perspective, matching Python behavior while correctly handling JSON fields and nested models.
 
 ### 3.2 Partial Schema & Default Argument Support
 Python supports partial schemas via default arguments: `ParsingSchema(column_separator="|")` (other fields use defaults).
 - **Problem**: WIT records must have all fields present.
 - **Solution (WIT Side)**: All fields with Python defaults are marked as `option<T>` in WIT.
 - **Solution (Python Side)**: The app wrapper uses a `**kwargs` filtering pattern.
-    - If TS passes `undefined` -> Python receives `None`.
+    - If TS passes `undefined` → Python receives `None`.
     - The wrapper sees `None` and **omits** the argument from the Python call.
     - Python's native default argument logic kicks in.
 
-## 4. Verification Strategy
+## 4. Test Infrastructure
 
-We verify compatibility using a **Mirror Testing** strategy.
+The generator includes comprehensive unit tests:
 
-- **`verify.py`**: A standalone script using the Python library to perform reference operations (Parsing, Editing, Generating).
-- **`verify.ts`**: A TypeScript replica of `verify.py` running against the generated NPM package.
+```
+scripts/tests/
+├── test_name_converter.py   # 16 tests - Naming conversion utilities
+├── test_type_mapper.py      # 17 tests - Type mapping logic
+├── test_scanner.py          # 8 tests  - Module scanning
+├── test_template_rendering.py  # 6 tests - Template output
+└── test_dist_output.py      # 10 tests - Generated code verification
+```
 
-Both scripts perform the exact same sequence of operations and assertions. If `verify.ts` compiles and passes, it mathematically proves that the API shape and runtime behavior match the Python implementation.
+Run with: `npm run test:generator`
 
-## 6. Structural Audit (Mathematical Proof)
+## 5. Verification Strategy
 
-Beyond functional testing, we employ a **Structural Audit** script (`scripts/verify_api_coverage.py`) to mathematically prove 100% API surface coverage.
+We verify compatibility using multiple approaches:
 
-This script:
-1.  **Scans Python**: Uses `griffe` to extract every public Class, Method, and Standalone Function.
-2.  **Scans TypeScript**: Parses the generated `index.ts` to extract exported Classes and Functions.
-3.  **Asserts Intersection**: Verifies that **every** public Python API element exists in the TypeScript definition.
+1. **Generator Unit Tests**: `npm run test:generator` (61 tests)
+2. **Runtime Integration**: `npm test` (end-to-end verification)
+3. **API Coverage Audit**: `uv run python scripts/verify_api_coverage.py`
+
+The API coverage script scans both Python and TypeScript to verify 100% structural parity:
 
 ```text
-Scanning Python API from: .../src
-Scanning TypeScript API from: .../src/index.ts
-
---- Compliance Check ---
-
---- API Coverage Log ---
-| API Signature | Python | TypeScript | Status |
-| --- | --- | --- | --- |
-...
-| function parseTableFromFile | function parseTableFromFile | function parseTableFromFile | ✅ OK |
-...
-| function scanTables | function scanTables | function scanTables | ✅ OK |
-
 ✅ 100% Structural API Compatibility Verified.
    Covered 27 public methods/functions.
 ```
 
-This ensures that no method is accidentally left behind or renamed during the generation process.
-
-## 7. Known Limitations
-
-While we guarantee structural parity, some Python features have runtime constraints in the WASM environment:
+## 6. Known Limitations
 
 1.  **File System Access (`*FromFile` functions)**:
-    - Functions like `parseTableFromFile`, `parseWorkbookFromFile`, and `scanTablesFromFile` are exposed as **async functions** that require a Node.js environment.
-    - **In Node.js**: These functions work correctly. On first call, they lazily initialize the WASI filesystem shim.
-    - **In Browser**: These functions throw a clear error message: `"File system operations are not supported in browser environments. Use parseTable(), parseWorkbook(), or scanTables() with string content instead."`
-    - **Browser Compatibility**: All other core APIs (`parseTable`, `parseWorkbook`, `scanTables`, etc.) work seamlessly in both Node.js and browser environments, including bundlers like Vite and Webpack.
+    - Functions like `parseTableFromFile` require a Node.js environment.
+    - **In Browser**: These functions throw a clear error message directing users to use string-based alternatives.
 
-2.  **`Table.toModels(schema_cls)` Usage**:
-    - Because JavaScript cannot pass Python class objects directly, the adapter allows passing the **class name as a string**.
-    - Example: `tableToModels(table, "ParsingSchema")`.
-    - Returns: `list[string]` (JSON-serialized strings of the models).
-    - You must deserialize the JSON in JavaScript: `JSON.parse(result[0])`.
+2.  **`Table.toModels(schema)` - Schema Types**:
+    - **Plain Object Schema**: Pass an object with converter functions:
+      ```typescript
+      const schema = {
+          id: (val: string) => Number(val),
+          active: (val: string) => val === 'yes'
+      };
+      const results = table.toModels(schema);
+      // [{ id: 1, active: true }]
+      ```
+    - **Zod Schema**: For robust validation, use [Zod](https://zod.dev/):
+      ```typescript
+      import { z } from 'zod';
+      const schema = z.object({
+          id: z.coerce.number(),
+          active: z.string().transform(v => v === 'yes')
+      });
+      const results = table.toModels(schema);
+      ```
+    - Both approaches return an array of typed objects directly—no JSON parsing required.
 
-## 8. For Maintainers: Adding New Features
+## 7. For Maintainers: Adding New Features
 
 1.  **Modify Python Core**: Add your methods or fields to `md_spreadsheet_parser`.
 2.  **Auto-Generate**: Run `npm run build`. This will:
     - Detect the new fields/methods via Griffe.
     - Update `generated.wit`, `generated_adapter.py`, `app.py`, and `src/index.ts`.
     - Recompile the WASM.
-3.  **Verify**: Update `verification-env/verify.ts` to test the new feature and run `npm run verify`.
+3.  **Run Tests**: `npm test && npm run test:generator`

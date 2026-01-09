@@ -1,0 +1,16 @@
+package example:spreadsheet;
+
+interface types {
+{% for def in definitions %}
+    {{ def }}
+{% endfor %}
+}
+
+world spreadsheet-parser {
+{% if used_types %}
+    use types.{{ '{' }}{{ used_types | join(', ') }}{{ '}' }};
+{% endif %}
+{% for export in exports %}
+    {{ export }}
+{% endfor %}
+}

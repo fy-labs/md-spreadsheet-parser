@@ -1,0 +1,41 @@
+import json
+from dataclasses import dataclass, asdict
+from typing import Any
+import md_spreadsheet_parser.models as models
+import md_spreadsheet_parser.schemas as schemas
+
+def resolve_model_class(name: str) -> Any:
+    cls = None
+    if hasattr(models, name):
+        cls = getattr(models, name)
+    elif hasattr(schemas, name):
+        cls = getattr(schemas, name)
+    if cls:
+        return cls
+    raise ValueError(f'Unknown model/schema class: {name}')
+
+{% for record in records %}
+@dataclass
+class {{ record.local_class_name }}:
+{% for field in record.fields %}
+    {{ field.name }}: Any = None
+{% endfor %}
+
+def convert_{{ record.wit_name | replace("-", "_") }}(obj: Any) -> {{ record.local_class_name }}:
+    if obj is None: return None
+    res = {{ record.local_class_name }}()
+{% for field in record.fields %}
+    res.{{ field.name }} = {{ field.convert_expr }}
+{% endfor %}
+    return res
+
+def unwrap_{{ record.wit_name | replace("-", "_") }}(obj: Any) -> Any:
+    if obj is None: return None
+    kwargs = {}
+{% for field in record.fields %}
+    if obj.{{ field.name }} is not None:
+        kwargs['{{ field.name }}'] = {{ field.unwrap_expr }}
+{% endfor %}
+    return {{ record.real_cls_access }}(**kwargs)
+
+{% endfor %}

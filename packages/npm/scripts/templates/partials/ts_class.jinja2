@@ -1,0 +1,68 @@
+
+export class {{ cls.name }} {
+{% for field in cls.fields %}
+    {{ field.js_name }}: {{ field.ts_type }} | undefined;
+{% endfor %}
+
+    constructor(data?: Partial<{{ cls.name }}>) {
+        if (data) {
+{% for field in cls.fields %}
+{% if field.is_json %}
+            this.{{ field.js_name }} = (typeof data.{{ field.js_name }} === 'string') ? JSON.parse(data.{{ field.js_name }}) : data.{{ field.js_name }};
+{% elif field.is_model_list %}
+            this.{{ field.js_name }} = (data.{{ field.js_name }} || []).map((x: any) => x instanceof {{ field.inner_model }} ? x : new {{ field.inner_model }}(x));
+{% else %}
+            this.{{ field.js_name }} = data.{{ field.js_name }};
+{% endif %}
+{% endfor %}
+        }
+    }
+
+    toDTO(): any {
+        const dto = { ...this } as any;
+{% for field in cls.fields %}
+{% if field.is_json %}
+        if (dto.{{ field.js_name }}) dto.{{ field.js_name }} = JSON.stringify(dto.{{ field.js_name }});
+{% endif %}
+{% if field.is_model_list %}
+        if (dto.{{ field.js_name }}) dto.{{ field.js_name }} = dto.{{ field.js_name }}.map((x: any) => x.toDTO ? x.toDTO() : x);
+{% endif %}
+{% endfor %}
+        return dto;
+    }
+{% if cls.has_json_getter %}
+
+    /**
+     * Returns a JSON-compatible plain object representation.
+     * Mirrors Python's .json property.
+     */
+    get json(): any {
+{% if cls.name == 'Table' %}
+        return {
+            name: this.name,
+            description: this.description,
+            headers: this.headers,
+            rows: this.rows,
+            metadata: this.metadata ?? {},
+            startLine: this.startLine,
+            endLine: this.endLine,
+            alignments: this.alignments,
+        };
+{% elif cls.name == 'Sheet' %}
+        return {
+            name: this.name,
+            tables: (this.tables || []).map((t: any) => t.json ? t.json : t),
+            metadata: this.metadata ?? {},
+        };
+{% elif cls.name == 'Workbook' %}
+        return {
+            sheets: (this.sheets || []).map((s: any) => s.json ? s.json : s),
+            metadata: this.metadata ?? {},
+        };
+{% endif %}
+    }
+{% endif %}
+{% for method in cls.methods %}
+{% include 'partials/ts_method.jinja2' %}
+{% endfor %}
+}

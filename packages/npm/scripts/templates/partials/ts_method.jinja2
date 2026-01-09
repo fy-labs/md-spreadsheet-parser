@@ -1,0 +1,25 @@
+
+    {{ method.name }}({{ method.args | join(', ') }}): any {
+        const dto = this.toDTO();
+{% if method.is_toModels %}
+        const clientRes = clientSideToModels(this.headers, this.rows || [], schemaCls);
+        if (clientRes) {
+            return clientRes;
+        }
+        const res = _{{ method.wasm_name }}({{ method.call_args | join(', ') }});
+        return res.map((x: string) => JSON.parse(x));
+{% else %}
+        const res = _{{ method.wasm_name }}({{ method.call_args | join(', ') }});
+{% if method.returns_self %}
+        const hydrated = new {{ cls.name }}(res);
+        Object.assign(this, hydrated);
+        return this;
+{% elif method.returns_optional_model %}
+        return res ? new {{ method.return_model }}(res) : undefined;
+{% elif method.returns_model %}
+        return new {{ method.return_model }}(res);
+{% else %}
+        return res;
+{% endif %}
+{% endif %}
+    }

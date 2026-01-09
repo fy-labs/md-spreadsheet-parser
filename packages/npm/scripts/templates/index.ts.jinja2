@@ -1,0 +1,76 @@
+import { {{ wasm_imports | join(', ') }} } from '../dist/parser.js';
+import { clientSideToModels } from './client-adapters.js';
+
+// Environment detection
+// @ts-ignore - process may not be defined in browser
+const isNode = typeof process !== 'undefined'
+    && typeof process.versions !== 'undefined'
+    && typeof process.versions.node !== 'undefined';
+
+// Lazily loaded Node.js modules (only in Node.js environment)
+let _pathModule: any = null;
+let _nodeInitialized = false;
+
+/**
+ * Ensures Node.js environment is initialized for file system operations.
+ * Throws an error in browser environments.
+ */
+async function ensureNodeEnvironment(): Promise<void> {
+    if (!isNode) {
+        throw new Error(
+            'File system operations (parseTableFromFile, parseWorkbookFromFile, scanTablesFromFile) ' +
+            'are not supported in browser environments. ' +
+            'Use parseTable(), parseWorkbook(), or scanTables() with string content instead.'
+        );
+    }
+    if (_nodeInitialized) return;
+
+    // Dynamic imports for Node.js only
+    const [pathModule, processModule, fsShim] = await Promise.all([
+        import('node:path'),
+        import('node:process'),
+        import('@bytecodealliance/preview2-shim/filesystem')
+    ]);
+
+    _pathModule = pathModule.default || pathModule;
+    const proc = processModule.default || processModule;
+    const root = _pathModule.parse(proc.cwd()).root;
+    // @ts-ignore - _addPreopen is an internal function
+    (fsShim as any)._addPreopen('/', root);
+    _nodeInitialized = true;
+}
+
+function resolveToVirtualPath(p: string): string {
+    if (!_pathModule) {
+        throw new Error('Node.js modules not initialized. Call ensureNodeEnvironment() first.');
+    }
+    return _pathModule.resolve(p);
+}
+
+{# Generate wrapper functions for global functions #}
+{% for func in global_functions %}
+{% if func.is_file_func %}
+export async function {{ func.js_name }}({{ func.args | join(', ') }}): Promise<any> {
+    await ensureNodeEnvironment();
+{% for arg in func.call_args %}
+{% if arg.name == 'source' %}
+    const {{ arg.name }}_resolved = resolveToVirtualPath({{ arg.name }});
+{% endif %}
+{% endfor %}
+    const res = _{{ func.wasm_func_name }}({{ func.resolved_call_args | join(', ') }});
+{% else %}
+export function {{ func.js_name }}({{ func.args | join(', ') }}): any {
+    const res = _{{ func.wasm_func_name }}({{ func.call_args | join(', ') }});
+{% endif %}
+{% if func.return_wrapper %}
+    return {{ func.return_wrapper }};
+{% else %}
+    return res;
+{% endif %}
+}
+
+{% endfor %}
+{# Generate class definitions #}
+{% for cls in classes %}
+{% include 'partials/ts_class.jinja2' %}
+{% endfor %}

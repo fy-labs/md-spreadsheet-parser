@@ -148,6 +148,16 @@ Since this package is a direct wrapper around the Python core, the fundamental c
 | `Workbook.get_sheet(name)` | `Workbook.getSheet(name)` | Get sheet by name |
 | `Sheet.get_table(index)` | `Sheet.getTable(index)` | Get table by index |
 
+## Limitations
+
+The following Python features are **not available** in the NPM package:
+
+| Feature | Reason |
+|---------|--------|
+| `parse_excel()` / `parseExcel()` | Excel file parsing requires `openpyxl`, which is not compatible with WASM |
+
+For Excel file operations, use the [Python package](https://github.com/f-y/md-spreadsheet-parser) directly.
+
 ## Architecture
 
 This package uses `componentize-py` to bundle the Python library as a WASM Component.

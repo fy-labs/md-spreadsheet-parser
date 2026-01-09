@@ -1,0 +1,12 @@
+import md_spreadsheet_parser.parsing
+import md_spreadsheet_parser.generator
+import md_spreadsheet_parser.loader
+import dataclasses
+import json
+from typing import Any
+from generated_adapter import *
+
+class WitWorld:
+{% for method in methods %}
+{{ method }}
+{% endfor %}

@@ -1,6 +1,6 @@
 {
     "name": "md-spreadsheet-parser",
-    "version": "1.1.10",
+    "version": "1.1.11",
     "description": "A robust Markdown table parser and manipulator, powered by Python and WebAssembly.",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

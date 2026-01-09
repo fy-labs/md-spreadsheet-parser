@@ -919,7 +919,9 @@ class WitGenerator:
 
                 if ret_py == "None":
                     # Mutation simulation: update this with result
-                    content += "        Object.assign(this, res);\n"
+                    # Use constructor to properly hydrate (parse JSON metadata, wrap nested models)
+                    content += f"        const hydrated = new {class_name}(res);\n"
+                    content += "        Object.assign(this, hydrated);\n"
                     content += "        return this;\n"
                 else:
                     # More robust cleaning
@@ -941,7 +943,9 @@ class WitGenerator:
 
                     if clean_ret in self.discovered_models:
                         if clean_ret == class_name:
-                            content += "        Object.assign(this, res);\n"
+                            # Use constructor to properly hydrate (parse JSON metadata, wrap nested models)
+                            content += f"        const hydrated = new {class_name}(res);\n"
+                            content += "        Object.assign(this, hydrated);\n"
                             content += "        return this;\n"
                         else:
                             is_optional = "None" in ret_py or "Optional" in ret_py

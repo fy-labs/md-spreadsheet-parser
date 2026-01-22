@@ -5,6 +5,12 @@
   <a href="https://github.com/f-y/md-spreadsheet-parser/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" />
   </a>
+  <a href="https://www.npmjs.com/package/md-spreadsheet-parser">
+    <img src="https://img.shields.io/npm/v/md-spreadsheet-parser.svg" alt="npm" />
+  </a>
+  <a href="https://pypi.org/project/md-spreadsheet-parser/">
+    <img src="https://img.shields.io/pypi/v/md-spreadsheet-parser.svg" alt="PyPI" />
+  </a>
 </p>
 
 **md-spreadsheet-parser** is a robust Markdown table parser and manipulator for Node.js.

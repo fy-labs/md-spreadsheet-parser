@@ -5,9 +5,12 @@
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" />
   </a>
   <a href="https://pypi.org/project/md-spreadsheet-parser/">
-    <img src="https://img.shields.io/badge/pypi-v1.2.0-blue" alt="PyPI" />
+    <img src="https://img.shields.io/pypi/v/md-spreadsheet-parser.svg" alt="PyPI" />
   </a>
   <a href="https://pepy.tech/projects/md-spreadsheet-parser"><img src="https://static.pepy.tech/personalized-badge/md-spreadsheet-parser?period=total&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads" alt="PyPI Downloads"></a>
+  <a href="https://www.npmjs.com/package/md-spreadsheet-parser">
+    <img src="https://img.shields.io/npm/v/md-spreadsheet-parser.svg" alt="npm" />
+  </a>
   <a href="https://github.com/f-y/md-spreadsheet-parser">
     <img src="https://img.shields.io/badge/repository-github-blue.svg" alt="Repository" />
   </a>
@@ -43,6 +46,7 @@ Read in Japanese: 日本語版はこちら(
 - [Installation](#installation)
 - [Usage](#usage)
     - [1. Basic Parsing](#1-basic-parsing)
+    - [GFM Feature Support](#gfm-feature-support)
     - [2. Type-Safe Validation](#2-type-safe-validation-recommended)
         - [Pydantic Integration](#pydantic-integration)
     - [3. JSON & Dictionary Conversion](#3-json--dictionary-conversion)
@@ -58,7 +62,7 @@ Read in Japanese: 日本語版はこちら(
     - [13. Visual Metadata Persistence](#13-visual-metadata-persistence)
     - [Command Line Interface (CLI)](#command-line-interface-cli)
 - [Configuration](#configuration)
-- [Future Roadmap](#future-roadmap)
+- [Ecosystem](#ecosystem)
 - [License](#license)
 
 ## Features
@@ -550,7 +554,7 @@ print(table.to_markdown(schema))
 # | 3 | 4 |
 ```
 
-### 6. Advanced Features
+### 7. Advanced Features
 
 **Metadata Extraction Configuration**
 By default, the parser captures table names (level 3 headers) and descriptions. You can customize this behavior with `MultiTableParsingSchema`.
@@ -565,7 +569,7 @@ schema = MultiTableParsingSchema(
 # Pass schema to parse_workbook...
 ```
 
-### 7. Advanced Type Conversion
+### 8. Advanced Type Conversion
 
 You can customize how string values are converted to Python objects by passing a `ConversionSchema` to `to_models()`. This is useful for internationalization (I18N) and handling custom types.
 
@@ -694,7 +698,7 @@ schema = ConversionSchema(
 )
 ```
 
-### 8. Robustness (Handling Malformed Tables)
+### 9. Robustness (Handling Malformed Tables)
 
 The parser is designed to handle imperfect markdown tables gracefully.
 
@@ -719,7 +723,7 @@ print(table.rows)
 
 This ensures that `table.rows` always matches the structure of `table.headers`, preventing crashes during iteration or validation.
 
-### 9. In-Cell Line Break Support
+### 10. In-Cell Line Break Support
 
 The parser automatically converts HTML line breaks to Python newlines (`\n`). This enables handling multiline cells naturally.
 
@@ -739,7 +743,7 @@ When generating Markdown (e.g., `table.to_markdown()`), Python newlines (`\n`) a
 
 To disable this, set `convert_br_to_newline=False` in `ParsingSchema`.
 
-### 10. Performance & Scalability (Streaming API)
+### 11. Performance & Scalability (Streaming API)
 
 **Do you really have a 10GB Markdown file?**
 
@@ -765,7 +769,7 @@ for table in scan_tables_iter("huge_server_log.md"):
 
 This is ideal for data pipelines, log analysis, and processing exports that are too large to open in standard spreadsheet editors.
 
-### 11. Programmatic Manipulation
+### 12. Programmatic Manipulation
 
 The library provides immutable methods to modify the data structure. These methods return a **new instance** of the object with the changes applied, keeping the original object unchanged.
 
@@ -806,7 +810,7 @@ new_table = table.delete_row(row_idx=2)
 new_table = table.clear_column_data(col_idx=3)
 ```
 
-### 12. Visual Metadata Persistence
+### 13. Visual Metadata Persistence
 
 The library supports persisting visual state (like column widths and filter settings) without altering the Markdown table structure itself. This is achieved via a hidden HTML comment appended after the table.
 

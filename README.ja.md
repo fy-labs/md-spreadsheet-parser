@@ -5,9 +5,12 @@
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" />
   </a>
   <a href="https://pypi.org/project/md-spreadsheet-parser/">
-    <img src="https://img.shields.io/badge/pypi-v0.8.0-blue" alt="PyPI" />
+    <img src="https://img.shields.io/pypi/v/md-spreadsheet-parser.svg" alt="PyPI" />
   </a>
   <a href="https://pepy.tech/projects/md-spreadsheet-parser"><img src="https://static.pepy.tech/personalized-badge/md-spreadsheet-parser?period=total&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads" alt="PyPI Downloads"></a>
+  <a href="https://www.npmjs.com/package/md-spreadsheet-parser">
+    <img src="https://img.shields.io/npm/v/md-spreadsheet-parser.svg" alt="npm" />
+  </a>
   <a href="https://github.com/f-y/md-spreadsheet-parser">
     <img src="https://img.shields.io/badge/repository-github-blue.svg" alt="Repository" />
   </a>
@@ -39,6 +42,7 @@
 - [インストール](#インストール)
 - [使い方](#使い方)
     - [1. 基本的な解析](#1-基本的な解析)
+    - [GFM機能のサポート](#gfm機能のサポート)
     - [2. 型安全な検証](#2-型安全な検証-推奨)
         - [Pydantic連携](#pydantic連携)
     - [3. JSONと辞書への変換](#3-jsonと辞書への変換)
@@ -54,7 +58,7 @@
     - [13. ビジュアルメタデータの永続化](#13-ビジュアルメタデータの永続化)
     - [コマンドラインインターフェース (CLI)](#コマンドラインインターフェース-cli)
 - [設定](#設定)
-- [今後のロードマップ](#今後のロードマップ)
+- [エコシステム](#エコシステム-ecosystem)
 - [ライセンス](#ライセンス)
 
 ## 機能

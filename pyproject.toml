@@ -1,6 +1,6 @@
 [project]
 name = "md-spreadsheet-parser"
-version = "1.2.0"
+version = "1.2.1"
 description = "A robust, zero-dependency Python library for parsing, validating, and manipulating Markdown tables, including conversion from Excel to Markdown."
 readme = "README.md"
 license = { file = "LICENSE" }

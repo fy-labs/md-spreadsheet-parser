@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.1] - 2026-01-22
+
+### 🐛 Bug Fixes
+
+Ensure JSON output for CLI and metadata uses Unicode characters instead of escape sequences (e.g. Japanese).
+
 ## [1.2.0] - 2026-01-10
 
 ### 🚀 New Features

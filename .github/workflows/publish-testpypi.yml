@@ -3,6 +3,7 @@ name: Publish to TestPyPI
 on:
   release:
     types: [published]
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   testpypi-publish:

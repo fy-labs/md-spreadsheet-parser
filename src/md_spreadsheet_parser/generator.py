@@ -104,6 +104,9 @@ def generate_sheet_markdown(
     """
     Generates a Markdown string representation of the sheet.
 
+    For doc sheets (type="doc"), outputs the content directly.
+    For table sheets (type="table"), outputs table markdown.
+
     Args:
         sheet: The Sheet object.
         schema (ParsingSchema, optional): Configuration for formatting.
@@ -118,10 +121,15 @@ def generate_sheet_markdown(
         lines.append(f"{'#' * sheet_level} {sheet.name}")
         lines.append("")
 
-    for i, table in enumerate(sheet.tables):
-        lines.append(generate_table_markdown(table, schema))
-        if i < len(sheet.tables) - 1:
-            lines.append("")  # Empty line between tables
+    # For doc sheets, output content directly
+    if sheet.type == "doc" and sheet.content is not None:
+        lines.append(sheet.content)
+    else:
+        # Table sheet: output tables
+        for i, table in enumerate(sheet.tables):
+            lines.append(generate_table_markdown(table, schema))
+            if i < len(sheet.tables) - 1:
+                lines.append("")  # Empty line between tables
 
     # Append Sheet Metadata if present (at the end)
     if isinstance(schema, MultiTableParsingSchema) and sheet.metadata:
@@ -148,8 +156,16 @@ def generate_workbook_markdown(
     """
     lines = []
 
+    # Use workbook.name for root marker, or explicit schema.root_marker
     if schema.root_marker:
         lines.append(schema.root_marker)
+        lines.append("")
+    else:
+        # Default: generate root marker from workbook name
+        root_marker_level = (
+            schema.sheet_header_level - 1 if schema.sheet_header_level else 1
+        )
+        lines.append(f"{'#' * root_marker_level} {workbook.name}")
         lines.append("")
 
     for i, sheet in enumerate(workbook.sheets):

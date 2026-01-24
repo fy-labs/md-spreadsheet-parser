@@ -489,4 +489,5 @@ def test_workbook_to_markdown():
 
     markdown = workbook.to_markdown()
     assert isinstance(markdown, str)
-    assert "# Tables" in markdown
+    # With new auto-detection, default workbook name is "Workbook"
+    assert "# Workbook" in markdown

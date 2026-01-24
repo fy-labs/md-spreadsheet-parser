@@ -19,6 +19,7 @@ from .validation import validate_table
 T = TypeVar("T")
 
 AlignmentType = Literal["left", "center", "right", "default"]
+SheetType = Literal["table", "doc"]
 
 
 class TableJSON(TypedDict):
@@ -42,6 +43,8 @@ class SheetJSON(TypedDict):
     """
 
     name: str
+    type: SheetType
+    content: str | None
     tables: list[TableJSON]
     metadata: dict[str, Any]
 
@@ -51,6 +54,7 @@ class WorkbookJSON(TypedDict):
     JSON-compatible dictionary representation of a Workbook.
     """
 
+    name: str
     sheets: list[SheetJSON]
     metadata: dict[str, Any]
 
@@ -417,11 +421,15 @@ class Sheet:
     Attributes:
         name (str): Name of the sheet.
         tables (list[Table]): List of tables contained in this sheet.
+        type (SheetType): Type of sheet - "table" for table sheet, "doc" for document sheet.
+        content (str | None): Raw markdown content for doc sheets. Only set when type="doc".
         metadata (dict[str, Any] | None): Arbitrary metadata (e.g. layout). Defaults to None.
     """
 
     name: str
     tables: list[Table]
+    type: SheetType = "table"
+    content: str | None = None
     metadata: dict[str, Any] | None = None
 
     def __post_init__(self):
@@ -439,6 +447,8 @@ class Sheet:
         """
         return {
             "name": self.name,
+            "type": self.type,
+            "content": self.content,
             "tables": [t.json for t in self.tables],
             "metadata": self.metadata if self.metadata is not None else {},
         }
@@ -529,10 +539,12 @@ class Workbook:
 
     Attributes:
         sheets (list[Sheet]): List of sheets in the workbook.
+        name (str): Name of the workbook (extracted from root marker). Defaults to "Workbook".
         metadata (dict[str, Any] | None): Arbitrary metadata. Defaults to None.
     """
 
     sheets: list[Sheet]
+    name: str = "Workbook"
     metadata: dict[str, Any] | None = None
 
     def __post_init__(self):
@@ -549,6 +561,7 @@ class Workbook:
             WorkbookJSON: A dictionary containing the workbook data.
         """
         return {
+            "name": self.name,
             "sheets": [s.json for s in self.sheets],
             "metadata": self.metadata if self.metadata is not None else {},
         }

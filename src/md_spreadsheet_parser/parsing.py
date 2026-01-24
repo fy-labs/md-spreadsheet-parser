@@ -431,6 +431,9 @@ def parse_sheet(
 ) -> Sheet:
     """
     Parse a sheet (section) containing one or more tables.
+
+    If the section contains valid tables, type="table" and content=None.
+    If no tables are found, type="doc" and content stores the raw markdown.
     """
     metadata: dict[str, Any] | None = None
 
@@ -446,7 +449,22 @@ def parse_sheet(
             pass  # Ignore invalid JSON
 
     tables = _extract_tables(markdown, schema, start_line_offset)
-    return Sheet(name=name, tables=tables, metadata=metadata)
+
+    # Determine sheet type based on whether tables were found
+    if tables:
+        # Table sheet: store tables but not raw content
+        return Sheet(
+            name=name, tables=tables, type="table", content=None, metadata=metadata
+        )
+    else:
+        # Doc sheet: no tables, store the raw markdown content
+        return Sheet(
+            name=name,
+            tables=[],
+            type="doc",
+            content=markdown.strip() if markdown.strip() else None,
+            metadata=metadata,
+        )
 
 
 def parse_workbook(
@@ -454,6 +472,14 @@ def parse_workbook(
 ) -> Workbook:
     """
     Parse a markdown document into a Workbook.
+
+    When schema.root_marker is None, auto-detection is used:
+    1. If a single H1 header exists, it becomes the Workbook.
+    2. Fallback to searching for "# Tables" or "# Workbook".
+    3. If not found, return empty Workbook.
+
+    When root_marker/sheet_header_level/table_header_level are None,
+    they are auto-calculated from the detected workbook level.
     """
     lines = markdown.split("\n")
     sheets: list[Sheet] = []
@@ -481,25 +507,116 @@ def parse_workbook(
 
     lines = filtered_lines
 
-    # Find root marker
-    start_index = 0
-    in_code_block = False
-    if schema.root_marker:
-        found = False
+    # Determine root marker and header levels
+    root_marker = schema.root_marker
+    workbook_name = "Workbook"
+    workbook_level = 1  # Default H1
+
+    if root_marker is None:
+        # Auto-detection mode
+        # Find all H1 headers (not in code blocks)
+        h1_headers: list[tuple[int, str]] = []  # (line_index, header_text)
+        in_code_block = False
+
         for i, line in enumerate(lines):
             stripped = line.strip()
             if stripped.startswith("```"):
                 in_code_block = not in_code_block
+            elif (
+                not in_code_block
+                and stripped.startswith("# ")
+                and not stripped.startswith("## ")
+            ):
+                # This is an H1 header (starts with "# " but not "## ")
+                header_text = stripped[2:].strip()
+                h1_headers.append((i, header_text))
 
-            if not in_code_block and stripped == schema.root_marker:
-                start_index = i + 1
-                found = True
-                break
-        if not found:
-            return Workbook(sheets=[], metadata=metadata)
+        if len(h1_headers) == 1:
+            # Single H1: use it as workbook
+            root_marker = h1_headers[0][1]
+            workbook_name = root_marker
+            root_marker = "# " + root_marker
+            workbook_level = 1
+        else:
+            # Multiple or no H1: fallback to "# Tables" or "# Workbook"
+            in_code_block = False
+            for i, line in enumerate(lines):
+                stripped = line.strip()
+                if stripped.startswith("```"):
+                    in_code_block = not in_code_block
+                elif not in_code_block:
+                    if stripped == "# Tables":
+                        root_marker = "# Tables"
+                        workbook_name = "Tables"
+                        workbook_level = 1
+                        break
+                    elif stripped == "# Workbook":
+                        root_marker = "# Workbook"
+                        workbook_name = "Workbook"
+                        workbook_level = 1
+                        break
+            if root_marker is None:
+                # No workbook found
+                return Workbook(sheets=[], name=workbook_name, metadata=metadata)
+    else:
+        # Explicit root_marker: extract name and level from it
+        if root_marker.startswith("#"):
+            level = 0
+            for char in root_marker:
+                if char == "#":
+                    level += 1
+                else:
+                    break
+            workbook_level = level
+            workbook_name = root_marker[level:].strip()
+
+    # Calculate header levels if not explicitly set
+    # Only auto-calculate from workbook_level if root_marker was auto-detected
+    # When root_marker is explicit, honor the explicit None values (meaning "no headers")
+    root_marker_auto_detected = schema.root_marker is None
+
+    if schema.sheet_header_level is not None:
+        sheet_header_level = schema.sheet_header_level
+    elif root_marker_auto_detected:
+        sheet_header_level = workbook_level + 1
+    else:
+        # Explicit root_marker but no sheet_header_level: default to 2
+        sheet_header_level = 2
+
+    if schema.table_header_level is not None:
+        table_header_level: int | None = schema.table_header_level
+    elif root_marker_auto_detected:
+        table_header_level = workbook_level + 2
+    else:
+        # Explicit root_marker but no table_header_level: keep as None (no table headers)
+        table_header_level = None
+
+    # Create an effective schema with resolved values
+    effective_schema = replace(
+        schema,
+        root_marker=root_marker,
+        sheet_header_level=sheet_header_level,
+        table_header_level=table_header_level,
+    )
+
+    # Find root marker
+    start_index = 0
+    in_code_block = False
+    found = False
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_code_block = not in_code_block
+
+        if not in_code_block and stripped == root_marker:
+            start_index = i + 1
+            found = True
+            break
+    if not found:
+        return Workbook(sheets=[], name=workbook_name, metadata=metadata)
 
     # Split by sheet headers
-    header_prefix = "#" * schema.sheet_header_level + " "
+    header_prefix = "#" * sheet_header_level + " "
 
     current_sheet_name: str | None = None
     current_sheet_lines: list[str] = []
@@ -534,7 +651,7 @@ def parse_workbook(
 
             # If header level is less than sheet_header_level (e.g. # vs ##),
             # it indicates a higher-level section, so we stop parsing the workbook.
-            if level < schema.sheet_header_level:
+            if level < sheet_header_level:
                 break
 
         if stripped.startswith(header_prefix):
@@ -547,7 +664,7 @@ def parse_workbook(
                     parse_sheet(
                         sheet_content,
                         current_sheet_name,
-                        schema,
+                        effective_schema,
                         start_line_offset=current_sheet_start_line + 1,
                     )
                 )
@@ -565,12 +682,12 @@ def parse_workbook(
             parse_sheet(
                 sheet_content,
                 current_sheet_name,
-                schema,
+                effective_schema,
                 start_line_offset=current_sheet_start_line + 1,
             )
         )
 
-    return Workbook(sheets=sheets, metadata=metadata)
+    return Workbook(sheets=sheets, name=workbook_name, metadata=metadata)
 
 
 def scan_tables(

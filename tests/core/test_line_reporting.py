@@ -1,6 +1,7 @@
+import textwrap
+
 from md_spreadsheet_parser.parsing import parse_workbook
 from md_spreadsheet_parser.schemas import MultiTableParsingSchema
-import textwrap
 
 
 def test_line_reporting_with_spacing():
@@ -68,7 +69,13 @@ def test_line_reporting_no_spacing():
     # 2: | 1 | 2 |
     # 3: ## Sheet 2
 
-    schema = MultiTableParsingSchema(table_header_level=None, capture_description=False)
+    # With new auto-detection, we need to explicitly set levels for backward compat
+    schema = MultiTableParsingSchema(
+        root_marker="# Tables",
+        sheet_header_level=2,
+        table_header_level=None,
+        capture_description=False,
+    )
     workbook = parse_workbook(md_text, schema)
 
     # No sheet headers used here effectively, but parse_workbook might wrap in default if not found?

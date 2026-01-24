@@ -1,5 +1,5 @@
 """
-Tests for Sheet.type and Sheet.content detection.
+Tests for Sheet.sheet_type and Sheet.content detection.
 
 Sheet type is determined by:
 - type="table": Section contains valid table(s)
@@ -27,7 +27,7 @@ def test_sheet_type_table_when_tables_found():
 
     assert len(workbook.sheets) == 1
     sheet = workbook.sheets[0]
-    assert sheet.type == "table"
+    assert sheet.sheet_type == "table"
     assert sheet.content is None
     assert len(sheet.tables) == 1
 
@@ -49,7 +49,7 @@ Some more text content.
 
     assert len(workbook.sheets) == 1
     sheet = workbook.sheets[0]
-    assert sheet.type == "doc"
+    assert sheet.sheet_type == "doc"
     assert sheet.content is not None
     assert "This is just a documentation section." in sheet.content
     assert "- Bullet point 1" in sheet.content
@@ -75,7 +75,7 @@ def test_sheet_type_doc_empty_section():
     # First sheet is empty
     empty_sheet = workbook.sheets[0]
     assert empty_sheet.name == "Empty Section"
-    assert empty_sheet.type == "doc"
+    assert empty_sheet.sheet_type == "doc"
     # Empty content results in None (stripped empty string)
     assert empty_sheet.content is None
     assert len(empty_sheet.tables) == 0
@@ -83,7 +83,7 @@ def test_sheet_type_doc_empty_section():
     # Second sheet has table
     table_sheet = workbook.sheets[1]
     assert table_sheet.name == "Another Sheet"
-    assert table_sheet.type == "table"
+    assert table_sheet.sheet_type == "table"
     assert table_sheet.content is None
     assert len(table_sheet.tables) == 1
 
@@ -109,7 +109,7 @@ def hello():
 
     assert len(workbook.sheets) == 1
     sheet = workbook.sheets[0]
-    assert sheet.type == "doc"
+    assert sheet.sheet_type == "doc"
     assert sheet.content is not None
 
     # Verify markdown structure preserved
@@ -146,20 +146,20 @@ This is a documentation section explaining the data.
 
     # First sheet: table
     assert workbook.sheets[0].name == "Data Sheet"
-    assert workbook.sheets[0].type == "table"
+    assert workbook.sheets[0].sheet_type == "table"
     assert workbook.sheets[0].content is None
     assert len(workbook.sheets[0].tables) == 1
 
     # Second sheet: doc
     assert workbook.sheets[1].name == "Readme"
-    assert workbook.sheets[1].type == "doc"
+    assert workbook.sheets[1].sheet_type == "doc"
     assert workbook.sheets[1].content is not None
     assert "documentation section" in workbook.sheets[1].content
     assert len(workbook.sheets[1].tables) == 0
 
     # Third sheet: table
     assert workbook.sheets[2].name == "Config"
-    assert workbook.sheets[2].type == "table"
+    assert workbook.sheets[2].sheet_type == "table"
     assert workbook.sheets[2].content is None
     assert len(workbook.sheets[2].tables) == 1
 
@@ -182,12 +182,12 @@ This is doc content.
 
     # Table sheet JSON
     table_json = workbook.sheets[0].json
-    assert table_json["type"] == "table"
+    assert table_json["sheet_type"] == "table"
     assert table_json["content"] is None
 
     # Doc sheet JSON
     doc_json = workbook.sheets[1].json
-    assert doc_json["type"] == "doc"
+    assert doc_json["sheet_type"] == "doc"
     assert doc_json["content"] is not None
     assert "This is doc content." in doc_json["content"]
 
@@ -219,10 +219,10 @@ Some documentation text here.
 
     # Sheet with table
     assert workbook.sheets[0].name == "Sheet1"
-    assert workbook.sheets[0].type == "table"
+    assert workbook.sheets[0].sheet_type == "table"
     assert workbook.sheets[0].content is None
 
     # Sheet without table
     assert workbook.sheets[1].name == "Notes"
-    assert workbook.sheets[1].type == "doc"
+    assert workbook.sheets[1].sheet_type == "doc"
     assert "Some documentation text here." in workbook.sheets[1].content

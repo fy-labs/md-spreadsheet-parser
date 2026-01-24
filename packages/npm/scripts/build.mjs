@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const rootDir = join(__dirname, '..', '..', '..'); // Repository root
+const rootDir = join(__dirname, '..', '..', '..', '..'); // Workspace root (md-spreadsheet-suite)
 const pkgDir = join(__dirname, '..');
 
 // Helper to run commands

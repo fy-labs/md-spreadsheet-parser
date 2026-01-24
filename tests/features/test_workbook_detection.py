@@ -118,7 +118,7 @@ Additional notes.
         assert workbook.name == "Tables"
         assert len(workbook.sheets) == 1
         assert workbook.sheets[0].name == "Data"
-        assert workbook.sheets[0].type == "table"
+        assert workbook.sheets[0].sheet_type == "table"
 
     def test_tables_takes_precedence_over_workbook(self):
         """'# Tables' is checked before '# Workbook' (order in document)."""
@@ -332,16 +332,16 @@ See also: [links]
         assert len(workbook.sheets) == 4
 
         assert workbook.sheets[0].name == "Overview"
-        assert workbook.sheets[0].type == "doc"
+        assert workbook.sheets[0].sheet_type == "doc"
 
         assert workbook.sheets[1].name == "Data Tables"
-        assert workbook.sheets[1].type == "table"
+        assert workbook.sheets[1].sheet_type == "table"
 
         assert workbook.sheets[2].name == "Appendix"
-        assert workbook.sheets[2].type == "doc"
+        assert workbook.sheets[2].sheet_type == "doc"
 
         assert workbook.sheets[3].name == "Config"
-        assert workbook.sheets[3].type == "table"
+        assert workbook.sheets[3].sheet_type == "table"
 
     def test_header_without_content_between(self):
         """Consecutive headers without content between them."""
@@ -359,7 +359,7 @@ Some content here.
         assert len(workbook.sheets) == 4
         # All are doc sheets since no tables
         for sheet in workbook.sheets:
-            assert sheet.type == "doc"
+            assert sheet.sheet_type == "doc"
 
     def test_whitespace_variations_in_headers(self):
         """Headers with extra spaces between ## and title."""

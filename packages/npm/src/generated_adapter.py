@@ -67,6 +67,8 @@ def unwrap_table(obj: Any) -> Any:
 class WitSheet:
     name: Any = None
     tables: Any = None
+    sheet_type: Any = None
+    content: Any = None
     metadata: Any = None
 
 def convert_sheet(obj: Any) -> WitSheet:
@@ -74,6 +76,8 @@ def convert_sheet(obj: Any) -> WitSheet:
     res = WitSheet()
     res.name = obj.name
     res.tables = [convert_table(x) for x in obj.tables]
+    res.sheet_type = str(obj.sheet_type) if obj.sheet_type is not None else None
+    res.content = obj.content
     res.metadata = json.dumps(obj.metadata or {}) if obj.metadata is not None else None
     return res
 
@@ -84,6 +88,10 @@ def unwrap_sheet(obj: Any) -> Any:
         kwargs['name'] = obj.name
     if obj.tables is not None:
         kwargs['tables'] = [unwrap_table(x) for x in obj.tables]
+    if obj.sheet_type is not None:
+        kwargs['sheet_type'] = obj.sheet_type
+    if obj.content is not None:
+        kwargs['content'] = obj.content
     if obj.metadata is not None:
         kwargs['metadata'] = json.loads(obj.metadata)
     return models.Sheet(**kwargs)
@@ -91,12 +99,18 @@ def unwrap_sheet(obj: Any) -> Any:
 @dataclass
 class WitWorkbook:
     sheets: Any = None
+    name: Any = None
+    start_line: Any = None
+    end_line: Any = None
     metadata: Any = None
 
 def convert_workbook(obj: Any) -> WitWorkbook:
     if obj is None: return None
     res = WitWorkbook()
     res.sheets = [convert_sheet(x) for x in obj.sheets]
+    res.name = obj.name
+    res.start_line = obj.start_line
+    res.end_line = obj.end_line
     res.metadata = json.dumps(obj.metadata or {}) if obj.metadata is not None else None
     return res
 
@@ -105,6 +119,12 @@ def unwrap_workbook(obj: Any) -> Any:
     kwargs = {}
     if obj.sheets is not None:
         kwargs['sheets'] = [unwrap_sheet(x) for x in obj.sheets]
+    if obj.name is not None:
+        kwargs['name'] = obj.name
+    if obj.start_line is not None:
+        kwargs['start_line'] = obj.start_line
+    if obj.end_line is not None:
+        kwargs['end_line'] = obj.end_line
     if obj.metadata is not None:
         kwargs['metadata'] = json.loads(obj.metadata)
     return models.Workbook(**kwargs)

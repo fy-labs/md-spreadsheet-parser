@@ -1,5 +1,5 @@
 from dataclasses import dataclass, replace
-from typing import Any, Literal, TypedDict, TypeVar
+from typing import Any, Literal, NotRequired, TypedDict, TypeVar
 
 from .generator import (
     generate_sheet_markdown,
@@ -43,7 +43,7 @@ class SheetJSON(TypedDict):
     """
 
     name: str
-    type: SheetType
+    sheet_type: SheetType
     content: str | None
     tables: list[TableJSON]
     metadata: dict[str, Any]
@@ -57,6 +57,8 @@ class WorkbookJSON(TypedDict):
     name: str
     sheets: list[SheetJSON]
     metadata: dict[str, Any]
+    startLine: NotRequired[int | None]
+    endLine: NotRequired[int | None]
 
 
 @dataclass(frozen=True)
@@ -421,14 +423,14 @@ class Sheet:
     Attributes:
         name (str): Name of the sheet.
         tables (list[Table]): List of tables contained in this sheet.
-        type (SheetType): Type of sheet - "table" for table sheet, "doc" for document sheet.
-        content (str | None): Raw markdown content for doc sheets. Only set when type="doc".
+        sheet_type (SheetType): Type of sheet - "table" for table sheet, "doc" for document sheet.
+        content (str | None): Raw markdown content for doc sheets. Only set when sheet_type="doc".
         metadata (dict[str, Any] | None): Arbitrary metadata (e.g. layout). Defaults to None.
     """
 
     name: str
     tables: list[Table]
-    type: SheetType = "table"
+    sheet_type: SheetType = "table"
     content: str | None = None
     metadata: dict[str, Any] | None = None
 
@@ -447,7 +449,7 @@ class Sheet:
         """
         return {
             "name": self.name,
-            "type": self.type,
+            "sheet_type": self.sheet_type,
             "content": self.content,
             "tables": [t.json for t in self.tables],
             "metadata": self.metadata if self.metadata is not None else {},
@@ -540,11 +542,15 @@ class Workbook:
     Attributes:
         sheets (list[Sheet]): List of sheets in the workbook.
         name (str): Name of the workbook (extracted from root marker). Defaults to "Workbook".
+        start_line (int | None): 0-indexed line number where workbook header starts. None if not detected.
+        end_line (int | None): 0-indexed line number where workbook section ends. None if not detected.
         metadata (dict[str, Any] | None): Arbitrary metadata. Defaults to None.
     """
 
     sheets: list[Sheet]
     name: str = "Workbook"
+    start_line: int | None = None
+    end_line: int | None = None
     metadata: dict[str, Any] | None = None
 
     def __post_init__(self):
@@ -560,11 +566,16 @@ class Workbook:
         Returns:
             WorkbookJSON: A dictionary containing the workbook data.
         """
-        return {
+        result: WorkbookJSON = {
             "name": self.name,
             "sheets": [s.json for s in self.sheets],
             "metadata": self.metadata if self.metadata is not None else {},
         }
+        if self.start_line is not None:
+            result["startLine"] = self.start_line
+        if self.end_line is not None:
+            result["endLine"] = self.end_line
+        return result
 
     def get_sheet(self, name: str) -> Sheet | None:
         """

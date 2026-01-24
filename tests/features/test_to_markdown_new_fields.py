@@ -1,9 +1,9 @@
 """
-Tests for to_markdown with new Sheet.type/content and Workbook.name fields.
+Tests for to_markdown with new Sheet.sheet_type/content and Workbook.name fields.
 
 Tests cover:
-- Doc sheet (type="doc") outputs content directly
-- Table sheet (type="table") outputs table markdown
+- Doc sheet (sheet_type="doc") outputs content directly
+- Table sheet (sheet_type="table") outputs table markdown
 - Workbook.name used in root marker when schema.root_marker is None
 - Round-trip: parse → to_markdown → parse consistency
 """
@@ -25,7 +25,7 @@ class TestDocSheetToMarkdown:
         sheet = Sheet(
             name="Notes",
             tables=[],
-            type="doc",
+            sheet_type="doc",
             content="This is my documentation.\n\n- Point 1\n- Point 2",
         )
         schema = MultiTableParsingSchema(
@@ -44,7 +44,7 @@ class TestDocSheetToMarkdown:
         sheet = Sheet(
             name="Empty Notes",
             tables=[],
-            type="doc",
+            sheet_type="doc",
             content=None,
         )
         schema = MultiTableParsingSchema(
@@ -63,7 +63,7 @@ class TestDocSheetToMarkdown:
         sheet = Sheet(
             name="Config",
             tables=[],
-            type="doc",
+            sheet_type="doc",
             content="Some configuration notes.",
             metadata={"layout": "wide"},
         )
@@ -88,7 +88,7 @@ class TestTableSheetToMarkdown:
         sheet = Sheet(
             name="Data",
             tables=[table],
-            type="table",
+            sheet_type="table",
             content=None,
         )
         schema = MultiTableParsingSchema(
@@ -107,7 +107,7 @@ class TestTableSheetToMarkdown:
         sheet = Sheet(
             name="Data",
             tables=[table],
-            type="table",
+            sheet_type="table",
             content="This should not appear",  # Accidentally set
         )
         schema = MultiTableParsingSchema(
@@ -159,7 +159,7 @@ class TestWorkbookNameInOutput:
 
     def test_custom_workbook_name(self):
         """Custom workbook name appears in output."""
-        sheet = Sheet(name="Sheet1", tables=[], type="doc", content="Notes")
+        sheet = Sheet(name="Sheet1", tables=[], sheet_type="doc", content="Notes")
         workbook = Workbook(sheets=[sheet], name="Financial Reports 2024")
 
         schema = MultiTableParsingSchema(
@@ -177,11 +177,11 @@ class TestMixedSheetsToMarkdown:
     def test_mixed_sheets_output(self):
         """Workbook with both table and doc sheets outputs correctly."""
         table = Table(headers=["A", "B"], rows=[["1", "2"]])
-        table_sheet = Sheet(name="Data", tables=[table], type="table", content=None)
+        table_sheet = Sheet(name="Data", tables=[table], sheet_type="table", content=None)
         doc_sheet = Sheet(
             name="README",
             tables=[],
-            type="doc",
+            sheet_type="doc",
             content="# Welcome\n\nThis is the documentation.",
         )
         workbook = Workbook(sheets=[table_sheet, doc_sheet], name="Project")
@@ -219,7 +219,7 @@ class TestRoundTrip:
         workbook1 = parse_workbook(original_md)
         assert workbook1.name == "Test Workbook"
         assert len(workbook1.sheets) == 1
-        assert workbook1.sheets[0].type == "table"
+        assert workbook1.sheets[0].sheet_type == "table"
 
         # Generate
         schema = MultiTableParsingSchema(
@@ -234,7 +234,7 @@ class TestRoundTrip:
         assert workbook2.name == workbook1.name
         assert len(workbook2.sheets) == len(workbook1.sheets)
         assert workbook2.sheets[0].name == workbook1.sheets[0].name
-        assert workbook2.sheets[0].type == workbook1.sheets[0].type
+        assert workbook2.sheets[0].sheet_type == workbook1.sheets[0].sheet_type
         assert len(workbook2.sheets[0].tables) == len(workbook1.sheets[0].tables)
 
     def test_round_trip_doc_sheet(self):
@@ -256,7 +256,7 @@ Additional resources and links.
         # Parse
         workbook1 = parse_workbook(original_md)
         assert len(workbook1.sheets) == 2
-        assert all(s.type == "doc" for s in workbook1.sheets)
+        assert all(s.sheet_type == "doc" for s in workbook1.sheets)
 
         # Generate
         schema = MultiTableParsingSchema(
@@ -271,7 +271,7 @@ Additional resources and links.
         assert len(workbook2.sheets) == len(workbook1.sheets)
         for s1, s2 in zip(workbook1.sheets, workbook2.sheets):
             assert s1.name == s2.name
-            assert s1.type == s2.type
+            assert s1.sheet_type == s2.sheet_type
             # Content may have minor whitespace differences
             if s1.content and s2.content:
                 assert s1.content.strip() == s2.content.strip()
@@ -297,9 +297,9 @@ Final notes and observations.
         # Parse
         workbook1 = parse_workbook(original_md)
         assert len(workbook1.sheets) == 3
-        assert workbook1.sheets[0].type == "doc"
-        assert workbook1.sheets[1].type == "table"
-        assert workbook1.sheets[2].type == "doc"
+        assert workbook1.sheets[0].sheet_type == "doc"
+        assert workbook1.sheets[1].sheet_type == "table"
+        assert workbook1.sheets[2].sheet_type == "doc"
 
         # Generate
         schema = MultiTableParsingSchema(
@@ -313,7 +313,7 @@ Final notes and observations.
         assert len(workbook2.sheets) == 3
         for i, (s1, s2) in enumerate(zip(workbook1.sheets, workbook2.sheets)):
             assert s1.name == s2.name, f"Sheet {i} name mismatch"
-            assert s1.type == s2.type, f"Sheet {i} type mismatch"
+            assert s1.sheet_type == s2.sheet_type, f"Sheet {i} type mismatch"
 
     def test_round_trip_preserves_table_data(self):
         """Round-trip preserves actual table cell values."""

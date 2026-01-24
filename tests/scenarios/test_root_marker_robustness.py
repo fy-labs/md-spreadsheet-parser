@@ -31,8 +31,8 @@ Final thoughts.
     assert workbook.sheets[0].name == "Section 1"
     assert workbook.sheets[1].name == "Conclusion"
     # These are doc sheets (no tables)
-    assert workbook.sheets[0].type == "doc"
-    assert workbook.sheets[1].type == "doc"
+    assert workbook.sheets[0].sheet_type == "doc"
+    assert workbook.sheets[1].sheet_type == "doc"
 
 
 def test_explicit_root_marker_requires_exact_match():
@@ -100,4 +100,4 @@ Some intro text.
     assert workbook.name == "Workbook"
     assert len(workbook.sheets) == 1
     assert workbook.sheets[0].name == "Sheet1"
-    assert workbook.sheets[0].type == "table"
+    assert workbook.sheets[0].sheet_type == "table"

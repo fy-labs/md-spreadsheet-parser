@@ -122,7 +122,7 @@ def generate_sheet_markdown(
         lines.append("")
 
     # For doc sheets, output content directly
-    if sheet.type == "doc" and sheet.content is not None:
+    if sheet.sheet_type == "doc" and sheet.content is not None:
         lines.append(sheet.content)
     else:
         # Table sheet: output tables

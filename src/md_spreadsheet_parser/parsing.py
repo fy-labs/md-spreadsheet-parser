@@ -432,8 +432,8 @@ def parse_sheet(
     """
     Parse a sheet (section) containing one or more tables.
 
-    If the section contains valid tables, type="table" and content=None.
-    If no tables are found, type="doc" and content stores the raw markdown.
+    If the section contains valid tables, sheet_type="table" and content=None.
+    If no tables are found, sheet_type="doc" and content stores the raw markdown.
     """
     metadata: dict[str, Any] | None = None
 
@@ -454,14 +454,18 @@ def parse_sheet(
     if tables:
         # Table sheet: store tables but not raw content
         return Sheet(
-            name=name, tables=tables, type="table", content=None, metadata=metadata
+            name=name,
+            tables=tables,
+            sheet_type="table",
+            content=None,
+            metadata=metadata,
         )
     else:
         # Doc sheet: no tables, store the raw markdown content
         return Sheet(
             name=name,
             tables=[],
-            type="doc",
+            sheet_type="doc",
             content=markdown.strip() if markdown.strip() else None,
             metadata=metadata,
         )
@@ -601,6 +605,7 @@ def parse_workbook(
 
     # Find root marker
     start_index = 0
+    workbook_start_line: int | None = None
     in_code_block = False
     found = False
     for i, line in enumerate(lines):
@@ -610,6 +615,7 @@ def parse_workbook(
 
         if not in_code_block and stripped == root_marker:
             start_index = i + 1
+            workbook_start_line = i
             found = True
             break
     if not found:
@@ -687,7 +693,16 @@ def parse_workbook(
             )
         )
 
-    return Workbook(sheets=sheets, name=workbook_name, metadata=metadata)
+    # Calculate workbook end line (last line of content processed)
+    workbook_end_line = len(lines) - 1 if lines else None
+
+    return Workbook(
+        sheets=sheets,
+        name=workbook_name,
+        start_line=workbook_start_line,
+        end_line=workbook_end_line,
+        metadata=metadata,
+    )
 
 
 def scan_tables(

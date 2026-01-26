@@ -479,8 +479,9 @@ def parse_workbook(
 
     When schema.root_marker is None, auto-detection is used:
     1. If a single H1 header exists, it becomes the Workbook.
-    2. Fallback to searching for "# Tables" or "# Workbook".
-    3. If not found, return empty Workbook.
+    2. If md-spreadsheet metadata comment exists, the H1 containing it becomes Workbook.
+    3. Fallback to searching for "# Tables" or "# Workbook".
+    4. If not found, return empty Workbook.
 
     When root_marker/sheet_header_level/table_header_level are None,
     they are auto-calculated from the detected workbook level.
@@ -541,7 +542,64 @@ def parse_workbook(
             workbook_name = root_marker
             root_marker = "# " + root_marker
             workbook_level = 1
-        else:
+        elif metadata is not None and len(h1_headers) > 0:
+            # Step 3: If md-spreadsheet metadata exists, find the H1 that contains it
+            # The metadata comment should be inside a section, so we find the H1
+            # header that precedes the metadata comment location.
+            # Since we already extracted metadata, we need to find which H1 section
+            # contains it by re-scanning the original lines.
+
+            # Re-scan original lines to find metadata line index
+            original_lines = markdown.split("\n")
+            metadata_line_idx = None
+            for i, line in enumerate(original_lines):
+                stripped = line.strip()
+                if wb_metadata_pattern.match(stripped):
+                    metadata_line_idx = i
+                    break
+
+            if metadata_line_idx is not None:
+                # Find the H1 header that precedes this metadata line
+                # Map original line indices to filtered line indices
+                selected_h1 = None
+                for line_idx, header_text in h1_headers:
+                    # h1_headers contains indices in filtered_lines
+                    # Need to find corresponding original index
+                    # Actually, h1_headers was built from filtered_lines (after metadata removal)
+                    # So we need to re-scan original to find H1 before metadata
+                    pass
+
+                # Simpler approach: scan original lines for H1 headers before metadata
+                in_code_block = False
+                for i in range(metadata_line_idx - 1, -1, -1):
+                    stripped = original_lines[i].strip()
+                    if stripped.startswith("```"):
+                        in_code_block = not in_code_block
+                    elif (
+                        not in_code_block
+                        and stripped.startswith("# ")
+                        and not stripped.startswith("## ")
+                    ):
+                        # Found the H1 header that contains the metadata
+                        header_text = stripped[2:].strip()
+                        root_marker = "# " + header_text
+                        workbook_name = header_text
+                        workbook_level = 1
+                        selected_h1 = header_text
+                        break
+
+                if selected_h1 is None:
+                    # Metadata exists but no H1 before it - use first H1
+                    if h1_headers:
+                        root_marker = h1_headers[0][1]
+                        workbook_name = root_marker
+                        root_marker = "# " + root_marker
+                        workbook_level = 1
+            else:
+                # Shouldn't happen since metadata was found
+                pass
+
+        if root_marker is None:
             # Multiple or no H1: fallback to "# Tables" or "# Workbook"
             in_code_block = False
             for i, line in enumerate(lines):

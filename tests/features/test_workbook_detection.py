@@ -495,3 +495,129 @@ Regular content.
         assert workbook.name == "Spreadsheet Data"
         assert len(workbook.sheets) == 1
         assert workbook.sheets[0].name == "Sheet1"
+
+
+class TestMetadataCommentDetection:
+    """Tests for workbook detection via md-spreadsheet metadata comment."""
+
+    def test_multiple_h1_with_metadata_comment(self):
+        """When multiple H1 exist, H1 containing metadata comment becomes workbook."""
+        markdown = """# Front Matter
+
+Introduction text.
+
+# Data
+
+## Sheet1
+
+| A | B |
+| - | - |
+| 1 | 2 |
+
+<!-- md-spreadsheet-workbook-metadata: {"tab_order": []} -->
+
+# Appendix
+
+Additional notes.
+"""
+        workbook = parse_workbook(markdown)
+        assert workbook.name == "Data"
+        assert len(workbook.sheets) == 1
+        assert workbook.sheets[0].name == "Sheet1"
+
+    def test_metadata_comment_before_any_h1(self):
+        """Metadata comment at start (before any H1) uses first H1."""
+        markdown = """<!-- md-spreadsheet-workbook-metadata: {"tab_order": []} -->
+
+# First H1
+
+## Sheet1
+
+| A |
+| - |
+| 1 |
+
+# Second H1
+
+Content.
+"""
+        workbook = parse_workbook(markdown)
+        # Metadata before any H1 - should use first H1
+        assert workbook.name == "First H1"
+        assert len(workbook.sheets) == 1
+
+    def test_metadata_takes_precedence_over_tables_fallback(self):
+        """Metadata detection runs before fallback to # Tables."""
+        markdown = """# Tables
+
+Some non-sheet content.
+
+# Actual Workbook
+
+## Sheet1
+
+| A |
+| - |
+| 1 |
+
+<!-- md-spreadsheet-workbook-metadata: {} -->
+
+# Notes
+
+More notes.
+"""
+        workbook = parse_workbook(markdown)
+        # Metadata is in "# Actual Workbook" section, not "# Tables"
+        assert workbook.name == "Actual Workbook"
+        assert len(workbook.sheets) == 1
+
+    def test_metadata_with_tab_order(self):
+        """Metadata with tab_order is correctly parsed."""
+        markdown = """# Intro
+
+Intro text.
+
+# My Spreadsheet
+
+## Sheet1
+
+| A |
+| - |
+| 1 |
+
+## Sheet2
+
+| B |
+| - |
+| 2 |
+
+<!-- md-spreadsheet-workbook-metadata: {"tab_order": [{"type": "sheet", "index": 1}, {"type": "sheet", "index": 0}]} -->
+
+# Appendix
+
+Notes.
+"""
+        workbook = parse_workbook(markdown)
+        assert workbook.name == "My Spreadsheet"
+        assert len(workbook.sheets) == 2
+        assert workbook.metadata is not None
+        assert "tab_order" in workbook.metadata
+
+    def test_single_h1_still_works_with_metadata(self):
+        """Single H1 with metadata works normally (step 1 takes precedence)."""
+        markdown = """# Only H1
+
+## Sheet1
+
+| A |
+| - |
+| 1 |
+
+<!-- md-spreadsheet-workbook-metadata: {"custom": "data"} -->
+"""
+        workbook = parse_workbook(markdown)
+        # Single H1 rule (step 1) applies, metadata is still parsed
+        assert workbook.name == "Only H1"
+        assert len(workbook.sheets) == 1
+        assert workbook.metadata is not None
+        assert workbook.metadata.get("custom") == "data"

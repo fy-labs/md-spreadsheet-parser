@@ -57,8 +57,9 @@ async function main() {
 
     // 3. Extract Wheel
     console.log('--- Extracting Wheel ---');
-    // Find the latest wheel: we shell out to listing because node glob is verbose
-    const { stdout } = await execa('ls', [join(rootDir, 'dist', '*.whl')], { shell: true });
+    // Find the latest wheel from md-spreadsheet-parser/dist (parser's dist, not workspace root)
+    const parserDir = join(__dirname, '..', '..', '..'); // md-spreadsheet-parser root
+    const { stdout } = await execa('ls', [join(parserDir, 'dist', '*.whl')], { shell: true });
     const wheel = stdout.trim().split('\n')[0];
 
     if (!wheel) {

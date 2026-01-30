@@ -325,6 +325,7 @@ class WitGenerator:
                 "js_name": re.sub(
                     r"_([a-z])", lambda g: g.group(1).upper(), name
                 ),  # camelCase for TS
+                "py_name": name,  # original snake_case for fallback
                 "wit_type": self.map_type(str(member.annotation))[0],
                 "is_json": self.is_json_type(str(member.annotation)),
                 "py_type": str(member.annotation),
@@ -779,15 +780,20 @@ class WitGenerator:
                 content += f"    {fname}: {ts_type} | undefined;\n"
 
             # Constructor
-            content += "\n    constructor(data?: Partial<" + class_name + ">) {\n"
+            content += "\n    constructor(data?: Partial<" + class_name + "> & Record<string, any>) {\n"
             content += "        if (data) {\n"
             for f in info["fields"]:
                 fname = f["js_name"]
+                pyname = f.get("py_name", fname)  # Use py_name for snake_case fallback
                 py_type = f.get("py_type", "")
                 
                 if f.get("is_json"):
                     # Robust handling: parse string if string, else use as is
-                    content += f"            this.{fname} = (typeof data.{fname} === 'string') ? JSON.parse(data.{fname}) : data.{fname};\n"
+                    # Fallback to snake_case field name for WASM bridge compatibility
+                    content += f"            {{\n"
+                    content += f"                const val = data.{fname} ?? data.{pyname};\n"
+                    content += f"                this.{fname} = (typeof val === 'string') ? JSON.parse(val) : val;\n"
+                    content += f"            }}\n"
                 elif py_type.startswith("list["):
                     # Check if it's a list of models that need wrapping
                     match = re.search(r"list\[(.*)\]", py_type)
@@ -795,13 +801,15 @@ class WitGenerator:
                         inner = match.group(1).strip("'").strip('"')
                         if inner in self.discovered_models:
                             # Wrap each item in the appropriate class
-                            content += f"            this.{fname} = (data.{fname} || []).map((x: any) => x instanceof {inner} ? x : new {inner}(x));\n"
+                            # Fallback to snake_case field name
+                            content += f"            this.{fname} = ((data.{fname} ?? data.{pyname}) || []).map((x: any) => x instanceof {inner} ? x : new {inner}(x));\n"
                         else:
-                            content += f"            this.{fname} = data.{fname};\n"
+                            content += f"            this.{fname} = data.{fname} ?? data.{pyname};\n"
                     else:
-                        content += f"            this.{fname} = data.{fname};\n"
+                        content += f"            this.{fname} = data.{fname} ?? data.{pyname};\n"
                 else:
-                    content += f"            this.{fname} = data.{fname};\n"
+                    # Fallback to snake_case field name for WASM bridge compatibility
+                    content += f"            this.{fname} = data.{fname} ?? data.{pyname};\n"
             content += "        }\n"
             content += "    }\n"
 
@@ -849,6 +857,8 @@ class WitGenerator:
                     content += "        return {\n"
                     content += "            name: this.name,\n"
                     content += "            tables: (this.tables || []).map((t: any) => t.json ? t.json : t),\n"
+                    content += "            sheetType: this.sheetType,\n"
+                    content += "            content: this.content,\n"
                     content += "            metadata: this.metadata ?? {},\n"
                     content += "        };\n"
                 elif class_name == "Workbook":

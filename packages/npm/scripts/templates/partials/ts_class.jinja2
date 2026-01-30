@@ -4,15 +4,18 @@ export class {{ cls.name }} {
     {{ field.js_name }}: {{ field.ts_type }} | undefined;
 {% endfor %}
 
-    constructor(data?: Partial<{{ cls.name }}>) {
+    constructor(data?: Partial<{{ cls.name }}> & Record<string, any>) {
         if (data) {
 {% for field in cls.fields %}
 {% if field.is_json %}
-            this.{{ field.js_name }} = (typeof data.{{ field.js_name }} === 'string') ? JSON.parse(data.{{ field.js_name }}) : data.{{ field.js_name }};
+            {
+                const val = data.{{ field.js_name }} ?? data.{{ field.py_name }};
+                this.{{ field.js_name }} = (typeof val === 'string') ? JSON.parse(val) : val;
+            }
 {% elif field.is_model_list %}
-            this.{{ field.js_name }} = (data.{{ field.js_name }} || []).map((x: any) => x instanceof {{ field.inner_model }} ? x : new {{ field.inner_model }}(x));
+            this.{{ field.js_name }} = ((data.{{ field.js_name }} ?? data.{{ field.py_name }}) || []).map((x: any) => x instanceof {{ field.inner_model }} ? x : new {{ field.inner_model }}(x));
 {% else %}
-            this.{{ field.js_name }} = data.{{ field.js_name }};
+            this.{{ field.js_name }} = data.{{ field.js_name }} ?? data.{{ field.py_name }};
 {% endif %}
 {% endfor %}
         }

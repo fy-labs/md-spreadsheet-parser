@@ -466,7 +466,7 @@ def parse_sheet(
             name=name,
             tables=[],
             sheet_type="doc",
-            content=markdown.strip() if markdown.strip() else None,
+            content=markdown.rstrip() if markdown.strip() else None,
             metadata=metadata,
         )
 

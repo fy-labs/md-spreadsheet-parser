@@ -1,4 +1,3 @@
-from md_spreadsheet_parser.generator import generate_workbook_markdown
 from md_spreadsheet_parser.models import Sheet, Table, Workbook
 from md_spreadsheet_parser.parsing import parse_workbook
 
@@ -43,9 +42,7 @@ def test_round_trip_with_root_content():
     )
 
     # Generate markdown
-    from md_spreadsheet_parser.schemas import MultiTableParsingSchema
-
-    markdown = generate_workbook_markdown(original_wb, schema=MultiTableParsingSchema())
+    markdown = original_wb.to_markdown()
 
     # Verify markdown contains root content
     assert "Some introductory text." in markdown

@@ -865,6 +865,7 @@ class WitGenerator:
                     content += "        return {\n"
                     content += "            sheets: (this.sheets || []).map((s: any) => s.json ? s.json : s),\n"
                     content += "            metadata: this.metadata ?? {},\n"
+                    content += "            rootContent: this.rootContent,\n"
                     content += "        };\n"
                 
                 content += "    }\n"

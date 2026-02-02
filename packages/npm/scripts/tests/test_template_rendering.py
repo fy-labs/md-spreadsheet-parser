@@ -37,15 +37,15 @@ class TestTsClassTemplate:
             cls={
                 "name": "TestTable",
                 "fields": [
-                    {"js_name": "name", "ts_type": "string", "is_json": False, "is_model_list": False},
-                    {"js_name": "metadata", "ts_type": "any", "is_json": True, "is_model_list": False},
+                    {"js_name": "name", "py_name": "name", "ts_type": "string", "is_json": False, "is_model_list": False},
+                    {"js_name": "metadata", "py_name": "metadata", "ts_type": "any", "is_json": True, "is_model_list": False},
                 ],
                 "has_json_getter": False,
                 "methods": [],
             }
         )
         assert "export class TestTable" in result
-        assert "constructor(data?: Partial<TestTable>)" in result
+        assert "constructor(data?: Partial<TestTable> & Record<string, any>)" in result
         assert "toDTO()" in result
 
     def test_json_field_parsing(self, jinja_env):
@@ -55,13 +55,14 @@ class TestTsClassTemplate:
             cls={
                 "name": "Table",
                 "fields": [
-                    {"js_name": "metadata", "ts_type": "any", "is_json": True, "is_model_list": False},
+                    {"js_name": "metadata", "py_name": "metadata", "ts_type": "any", "is_json": True, "is_model_list": False},
                 ],
                 "has_json_getter": False,
                 "methods": [],
             }
         )
-        assert "JSON.parse(data.metadata)" in result
+        # Template now uses conditional: (typeof val === 'string') ? JSON.parse(val) : val
+        assert "JSON.parse(val)" in result
 
     def test_model_list_wrapping(self, jinja_env):
         """Test that list of models gets wrapped properly."""
@@ -70,7 +71,7 @@ class TestTsClassTemplate:
             cls={
                 "name": "Sheet",
                 "fields": [
-                    {"js_name": "tables", "ts_type": "any[]", "is_json": False, "is_model_list": True, "inner_model": "Table"},
+                    {"js_name": "tables", "py_name": "tables", "ts_type": "any[]", "is_json": False, "is_model_list": True, "inner_model": "Table"},
                 ],
                 "has_json_getter": False,
                 "methods": [],

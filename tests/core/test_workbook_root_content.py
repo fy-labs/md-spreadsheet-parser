@@ -25,11 +25,9 @@ This is root content.
     assert len(workbook.sheets) == 1
     assert workbook.sheets[0].name == "Sheet 1"
 
-    # Check root content (This is expected to FAIL before implementation)
-    # Current implementation ignores this content
-    assert workbook.root_content is not None
-    assert "This is root content." in workbook.root_content
-    assert "It has multiple lines." in workbook.root_content
+    # Check root content
+    expected_content = "This is root content.\n It has multiple lines."
+    assert workbook.root_content == expected_content
 
 
 def test_round_trip_with_root_content():
@@ -74,5 +72,6 @@ This is a Root Document
 
     assert workbook.name == "Doc"
     assert len(workbook.sheets) == 0
-    assert workbook.root_content is not None
-    assert "This is a Root Document" in workbook.root_content
+
+    expected_content = "This is a Root Document"
+    assert workbook.root_content == expected_content

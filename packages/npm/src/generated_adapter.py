@@ -103,6 +103,7 @@ class WitWorkbook:
     start_line: Any = None
     end_line: Any = None
     metadata: Any = None
+    root_content: Any = None
 
 def convert_workbook(obj: Any) -> WitWorkbook:
     if obj is None: return None
@@ -112,6 +113,7 @@ def convert_workbook(obj: Any) -> WitWorkbook:
     res.start_line = obj.start_line
     res.end_line = obj.end_line
     res.metadata = json.dumps(obj.metadata or {}) if obj.metadata is not None else None
+    res.root_content = obj.root_content
     return res
 
 def unwrap_workbook(obj: Any) -> Any:
@@ -127,6 +129,8 @@ def unwrap_workbook(obj: Any) -> Any:
         kwargs['end_line'] = obj.end_line
     if obj.metadata is not None:
         kwargs['metadata'] = json.loads(obj.metadata)
+    if obj.root_content is not None:
+        kwargs['root_content'] = obj.root_content
     return models.Workbook(**kwargs)
 
 @dataclass

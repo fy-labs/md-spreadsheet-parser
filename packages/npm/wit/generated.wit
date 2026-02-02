@@ -28,6 +28,7 @@ interface types {
         start-line: option<s32>,
         end-line: option<s32>,
         metadata: option<string>,
+        root-content: option<string>,
     }
     
     record parsing-schema {

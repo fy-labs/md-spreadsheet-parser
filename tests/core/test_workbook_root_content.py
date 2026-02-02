@@ -28,6 +28,10 @@ This is root content.
     expected_content = "This is root content.\n It has multiple lines."
     assert workbook.root_content == expected_content
 
+    # Round-trip check
+    generated_md = workbook.to_markdown()
+    assert expected_content in generated_md
+
 
 def test_round_trip_with_root_content():
     """
@@ -72,3 +76,7 @@ This is a Root Document
 
     expected_content = "This is a Root Document"
     assert workbook.root_content == expected_content
+
+    # Round-trip check
+    generated_md = workbook.to_markdown()
+    assert expected_content in generated_md

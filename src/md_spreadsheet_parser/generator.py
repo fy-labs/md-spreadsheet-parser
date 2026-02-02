@@ -168,6 +168,10 @@ def generate_workbook_markdown(
         lines.append(f"{'#' * root_marker_level} {workbook.name}")
         lines.append("")
 
+    if workbook.root_content:
+        lines.append(workbook.root_content)
+        lines.append("")
+
     for i, sheet in enumerate(workbook.sheets):
         lines.append(generate_sheet_markdown(sheet, schema))
         if i < len(workbook.sheets) - 1:

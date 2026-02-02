@@ -691,10 +691,14 @@ def parse_workbook(
     # We assume valid markdown structure where root marker is not inside a code block (handled above).
     in_code_block = False
 
+    # Capture root content (text between workbook header and first sheet header)
+    root_content_lines: list[str] = []
+
     # Track workbook section end line
     # If loop breaks due to another H1, end is line before that H1
     # Otherwise end is the last line of the file
     workbook_end_line: int | None = None
+
     for idx, line in enumerate(lines[start_index:], start=start_index):
         stripped = line.strip()
 
@@ -702,9 +706,11 @@ def parse_workbook(
             in_code_block = not in_code_block
 
         if in_code_block:
-            # Just collect lines if we are in a sheet
+            # Just collect lines if we are in a sheet or root content
             if current_sheet_name:
                 current_sheet_lines.append(line)
+            else:
+                root_content_lines.append(line)
             workbook_end_line = idx + 1  # Track last line in section
             continue
 
@@ -724,27 +730,31 @@ def parse_workbook(
                 # workbook_end_line is already set to last processed line
                 break
 
-        if stripped.startswith(header_prefix):
-            if current_sheet_name:
-                sheet_content = "\n".join(current_sheet_lines)
-                # The content starts at current_sheet_start_line + 1 (header line)
-                # Wait, current_sheet_lines collected lines AFTER the header.
-                # So the offset for content is current_sheet_start_line + 1.
-                sheets.append(
-                    parse_sheet(
-                        sheet_content,
-                        current_sheet_name,
-                        effective_schema,
-                        start_line_offset=current_sheet_start_line + 1,
+            # If header match sheet_header_level, it's a new sheet
+            if level == sheet_header_level and stripped.startswith(header_prefix):
+                if current_sheet_name:
+                    sheet_content = "\n".join(current_sheet_lines)
+                    sheets.append(
+                        parse_sheet(
+                            sheet_content,
+                            current_sheet_name,
+                            effective_schema,
+                            start_line_offset=current_sheet_start_line + 1,
+                        )
                     )
-                )
 
-            current_sheet_name = stripped[len(header_prefix) :].strip()
-            current_sheet_lines = []
-            current_sheet_start_line = idx
+                current_sheet_name = stripped[len(header_prefix) :].strip()
+                current_sheet_lines = []
+                current_sheet_start_line = idx
+                workbook_end_line = idx + 1
+                continue
+
+        # Not a sheet header
+        if current_sheet_name:
+            current_sheet_lines.append(line)
         else:
-            if current_sheet_name:
-                current_sheet_lines.append(line)
+            # We are in root content area (between Workbook header and first Sheet)
+            root_content_lines.append(line)
 
         workbook_end_line = idx + 1  # Track last line processed (exclusive end)
 
@@ -765,12 +775,19 @@ def parse_workbook(
             workbook_start_line + 1 if workbook_start_line is not None else None
         )
 
+    root_content: str | None = None
+    if root_content_lines:
+        content = "\n".join(root_content_lines)
+        if content.strip():
+            root_content = content.strip()
+
     return Workbook(
         sheets=sheets,
         name=workbook_name,
         start_line=workbook_start_line,
         end_line=workbook_end_line,
         metadata=metadata,
+        root_content=root_content,
     )
 
 

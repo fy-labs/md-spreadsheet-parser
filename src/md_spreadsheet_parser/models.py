@@ -59,6 +59,7 @@ class WorkbookJSON(TypedDict):
     metadata: dict[str, Any]
     startLine: NotRequired[int | None]
     endLine: NotRequired[int | None]
+    rootContent: NotRequired[str | None]
 
 
 @dataclass(frozen=True)
@@ -552,6 +553,7 @@ class Workbook:
     start_line: int | None = None
     end_line: int | None = None
     metadata: dict[str, Any] | None = None
+    root_content: str | None = None
 
     def __post_init__(self):
         if self.metadata is None:
@@ -575,6 +577,8 @@ class Workbook:
             result["startLine"] = self.start_line
         if self.end_line is not None:
             result["endLine"] = self.end_line
+        if self.root_content is not None:
+            result["rootContent"] = self.root_content  # type: ignore[typeddict-item]
         return result
 
     def get_sheet(self, name: str) -> Sheet | None:

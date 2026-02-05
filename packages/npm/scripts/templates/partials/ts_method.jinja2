@@ -1,6 +1,9 @@
 
     {{ method.name }}({{ method.args | join(', ') }}): any {
         const dto = this.toDTO();
+{% for dto_info in method.model_arg_dtos %}
+        const {{ dto_info.var_name }} = {{ dto_info.param_name }} instanceof {{ dto_info.model_name }} ? {{ dto_info.param_name }}.toDTO() : {{ dto_info.param_name }};
+{% endfor %}
 {% if method.is_toModels %}
         const clientRes = clientSideToModels(this.headers, this.rows || [], schemaCls);
         if (clientRes) {

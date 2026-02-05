@@ -55,12 +55,16 @@ export class {{ cls.name }} {
         return {
             name: this.name,
             tables: (this.tables || []).map((t: any) => t.json ? t.json : t),
+            sheetType: this.sheetType,
+            content: this.content,
             metadata: this.metadata ?? {},
         };
 {% elif cls.name == 'Workbook' %}
         return {
+            name: this.name,
             sheets: (this.sheets || []).map((s: any) => s.json ? s.json : s),
             metadata: this.metadata ?? {},
+            rootContent: this.rootContent,
         };
 {% endif %}
     }

@@ -4,6 +4,7 @@ from typing import Any
 
 import griffe
 
+from generator.renderer import render_ts_wrapper
 
 class WitGenerator:
     def __init__(self):
@@ -631,8 +632,8 @@ class WitGenerator:
         self.app_methods.append(method_def)
 
     def generate_ts_wrapper(self, output_path: Path):
-        # Imports mapping (kebab-case export -> camelCase import)
-        # We import WASM functions with an underscore prefix to use them internally
+        """Generate TypeScript wrapper using Jinja2 templates."""
+        # Build wasm_imports list
         wasm_imports = []
         for line in self.world_exports:
             match = re.search(r"export ([a-z0-9-]+):", line)
@@ -641,67 +642,31 @@ class WitGenerator:
                 camel = re.sub(r"-([a-z])", lambda g: g.group(1).upper(), kebab)
                 wasm_imports.append(f"{camel} as _{camel}")
 
-        content = f"import {{ {', '.join(wasm_imports)} }} from '../dist/parser.js';\n"
-        content += "import { clientSideToModels } from './client-adapters.js';\n\n"
-        
-        # Browser-compatible environment detection and lazy initialization
-        content += "// Environment detection\n"
-        content += "// @ts-ignore - process may not be defined in browser\n"
-        content += "const isNode = typeof process !== 'undefined'\n"
-        content += "    && typeof process.versions !== 'undefined'\n"
-        content += "    && typeof process.versions.node !== 'undefined';\n\n"
-        
-        content += "// Lazily loaded Node.js modules (only in Node.js environment)\n"
-        content += "let _pathModule: any = null;\n"
-        content += "let _nodeInitialized = false;\n\n"
-        
-        content += "/**\n"
-        content += " * Ensures Node.js environment is initialized for file system operations.\n"
-        content += " * Throws an error in browser environments.\n"
-        content += " */\n"
-        content += "async function ensureNodeEnvironment(): Promise<void> {\n"
-        content += "    if (!isNode) {\n"
-        content += "        throw new Error(\n"
-        content += "            'File system operations (parseTableFromFile, parseWorkbookFromFile, scanTablesFromFile) ' +\n"
-        content += "            'are not supported in browser environments. ' +\n"
-        content += "            'Use parseTable(), parseWorkbook(), or scanTables() with string content instead.'\n"
-        content += "        );\n"
-        content += "    }\n"
-        content += "    if (_nodeInitialized) return;\n\n"
-        content += "    // Dynamic imports for Node.js only\n"
-        content += "    const [pathModule, processModule, fsShim] = await Promise.all([\n"
-        content += "        import('node:path'),\n"
-        content += "        import('node:process'),\n"
-        content += "        import('@bytecodealliance/preview2-shim/filesystem')\n"
-        content += "    ]);\n\n"
-        content += "    _pathModule = pathModule.default || pathModule;\n"
-        content += "    const proc = processModule.default || processModule;\n"
-        content += "    const root = _pathModule.parse(proc.cwd()).root;\n"
-        content += "    // @ts-ignore - _addPreopen is an internal function\n"
-        content += "    (fsShim as any)._addPreopen('/', root);\n"
-        content += "    _nodeInitialized = true;\n"
-        content += "}\n\n"
-        
-        content += "function resolveToVirtualPath(p: string): string {\n"
-        content += "    if (!_pathModule) {\n"
-        content += "        throw new Error('Node.js modules not initialized. Call ensureNodeEnvironment() first.');\n"
-        content += "    }\n"
-        content += "    return _pathModule.resolve(p);\n"
-        content += "}\n\n"
+        # Build global_functions list
+        global_functions = self._build_global_functions_data()
 
-        # Generate Wrapper Functions
+        # Build classes list
+        classes = self._build_classes_data()
+
+        # Render using template
+        content = render_ts_wrapper(wasm_imports, global_functions, classes)
+
+        with open(output_path, "w") as f:
+            f.write(content)
+        print(f"Generated TS Wrapper: {output_path}")
+
+    def _build_global_functions_data(self) -> list[dict[str, Any]]:
+        """Build global functions data for template rendering."""
+        global_functions = []
         for func in self.global_functions:
             py_name = func["name"]
-            # CamelCase JS name
             js_name = re.sub(r"_([a-z])", lambda g: g.group(1).upper(), py_name)
-
-            # Find the internal WASM function name
             wit_name = func["wit_name"]
             wasm_func_name = re.sub(r"-([a-z])", lambda g: g.group(1).upper(), wit_name)
 
-            # Args
             args = []
             call_args = []
+            resolved_call_args = []
             for p in func["params"]:
                 if p.name in ("self", "cls"):
                     continue
@@ -709,28 +674,19 @@ class WitGenerator:
                 sig_param = ts_param
                 if p.default is not None:
                     sig_param += "?"
-                args.append(f"{sig_param}: any")  # TODO types
+                args.append(f"{sig_param}: any")
                 call_args.append(ts_param)
+                # For file functions, source needs to be resolved
+                if ts_param == "source":
+                    resolved_call_args.append(f"{ts_param}_resolved")
+                else:
+                    resolved_call_args.append(ts_param)
 
-            # Check if this is a file-based function (requires async for browser compatibility)
             is_file_func = "FromFile" in js_name
-            
-            if is_file_func:
-                # Async function signature for file operations
-                content += f"export async function {js_name}({', '.join(args)}): Promise<any> {{\n"
-                content += "    await ensureNodeEnvironment();\n"
-                for idx, arg_name in enumerate(call_args):
-                    if arg_name == "source":
-                        content += f"    const {arg_name}_resolved = resolveToVirtualPath({arg_name});\n"
-                        call_args[idx] = f"{arg_name}_resolved"
-            else:
-                # Regular sync function
-                content += f"export function {js_name}({', '.join(args)}): any {{\n"
 
-            content += f"    const res = _{wasm_func_name}({', '.join(call_args)});\n"
-
-            # Return wrapping
+            # Determine return wrapper
             ret_py = str(func["ret"]) if func["ret"] else "None"
+            return_wrapper = None
             if ret_py != "None":
                 clean_ret = (
                     ret_py.replace(" | None", "").replace("Optional[", "")[:-1]
@@ -738,270 +694,173 @@ class WitGenerator:
                     else ret_py
                 )
                 clean_ret = clean_ret.strip("'").strip('"')
-
-                # list[Table] -> Table[] wrapping logic?
-                # For now handling direct return of Models
                 if clean_ret in self.discovered_models:
-                    content += f"    return new {clean_ret}(res);\n"
+                    return_wrapper = f"new {clean_ret}(res)"
                 elif clean_ret.startswith("list["):
                     inner = clean_ret[5:-1].strip("'").strip('"')
                     if inner in self.discovered_models:
-                        content += f"    return res.map((x: any) => new {inner}(x));\n"
-                    else:
-                        content += "    return res;\n"
-                else:
-                    content += "    return res;\n"
-            else:
-                content += "    return res;\n"
+                        return_wrapper = f"res.map((x: any) => new {inner}(x))"
 
-            content += "}\n\n"
+            global_functions.append({
+                "js_name": js_name,
+                "wasm_func_name": wasm_func_name,
+                "args": args,
+                "call_args": call_args,
+                "resolved_call_args": resolved_call_args,
+                "is_file_func": is_file_func,
+                "return_wrapper": return_wrapper,
+            })
+        return global_functions
 
-        # Generate TS Classes
+    def _build_classes_data(self) -> list[dict[str, Any]]:
+        """Build classes data for template rendering."""
+        classes = []
         for class_name, info in self.discovered_models.items():
-            content += f"\nexport class {class_name} {{\n"
+            fields = self._build_fields_data(info["fields"])
+            methods = self._build_methods_data(class_name, info["methods"])
 
-            # Fields
-            for f in info["fields"]:
-                fname = f["js_name"]
-                # Type mapping needed for TS properties?
-                # Simplify: explicit typing or 'any' for now, or infer from WIT type
-                # list<string> -> string[]
-                t = f["wit_type"]
-                ts_type = "any"
-                if t == "string":
-                    ts_type = "string"
-                elif "int" in t or "32" in t or "64" in t:
-                    ts_type = "number"
-                elif t == "bool":
-                    ts_type = "boolean"
-                elif t.startswith("list<"):
-                    ts_type = "any[]"  # TODO recursive
+            classes.append({
+                "name": class_name,
+                "has_json_getter": class_name in ["Table", "Sheet", "Workbook"],
+                "fields": fields,
+                "methods": methods,
+            })
+        return classes
 
-                content += f"    {fname}: {ts_type} | undefined;\n"
+    def _build_fields_data(self, raw_fields: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Build fields data for template rendering."""
+        fields = []
+        for f in raw_fields:
+            fname = f["js_name"]
+            pyname = f.get("py_name", fname)
+            py_type = f.get("py_type", "")
+            wit_type = f["wit_type"]
 
-            # Constructor
-            content += "\n    constructor(data?: Partial<" + class_name + "> & Record<string, any>) {\n"
-            content += "        if (data) {\n"
-            for f in info["fields"]:
-                fname = f["js_name"]
-                pyname = f.get("py_name", fname)  # Use py_name for snake_case fallback
-                py_type = f.get("py_type", "")
-                
-                if f.get("is_json"):
-                    # Robust handling: parse string if string, else use as is
-                    # Fallback to snake_case field name for WASM bridge compatibility
-                    content += f"            {{\n"
-                    content += f"                const val = data.{fname} ?? data.{pyname};\n"
-                    content += f"                this.{fname} = (typeof val === 'string') ? JSON.parse(val) : val;\n"
-                    content += f"            }}\n"
-                elif py_type.startswith("list["):
-                    # Check if it's a list of models that need wrapping
-                    match = re.search(r"list\[(.*)\]", py_type)
-                    if match:
-                        inner = match.group(1).strip("'").strip('"')
-                        if inner in self.discovered_models:
-                            # Wrap each item in the appropriate class
-                            # Fallback to snake_case field name
-                            content += f"            this.{fname} = ((data.{fname} ?? data.{pyname}) || []).map((x: any) => x instanceof {inner} ? x : new {inner}(x));\n"
-                        else:
-                            content += f"            this.{fname} = data.{fname} ?? data.{pyname};\n"
-                    else:
-                        content += f"            this.{fname} = data.{fname} ?? data.{pyname};\n"
-                else:
-                    # Fallback to snake_case field name for WASM bridge compatibility
-                    content += f"            this.{fname} = data.{fname} ?? data.{pyname};\n"
-            content += "        }\n"
-            content += "    }\n"
+            # Determine TS type
+            ts_type = "any"
+            if wit_type == "string":
+                ts_type = "string"
+            elif "int" in wit_type or "32" in wit_type or "64" in wit_type:
+                ts_type = "number"
+            elif wit_type == "bool":
+                ts_type = "boolean"
+            elif wit_type.startswith("list<"):
+                ts_type = "any[]"
 
-            # toDTO Method
-            content += "\n    toDTO(): any {\n"
-            content += "        const dto = { ...this } as any;\n"
-            for f in info["fields"]:
-                fname = f["js_name"]
-                if f.get("is_json"):
-                    content += f"        if (dto.{fname}) dto.{fname} = JSON.stringify(dto.{fname});\n"
-                
-                # Check for list[Model] recursion
-                py_type = f.get("py_type", "")
-                if py_type.startswith("list["):
-                    match = re.search(r"list\[(.*)\]", py_type)
-                    if match:
-                        inner = match.group(1).strip("'").strip('"')
-                        if inner in self.discovered_models:
-                            content += f"        if (dto.{fname}) dto.{fname} = dto.{fname}.map((x: any) => x.toDTO ? x.toDTO() : x);\n"
+            # Check if model list
+            is_model_list = False
+            inner_model = None
+            if py_type.startswith("list["):
+                match = re.search(r"list\[(.*)\]", py_type)
+                if match:
+                    inner = match.group(1).strip("'").strip('"')
+                    if inner in self.discovered_models:
+                        is_model_list = True
+                        inner_model = inner
 
-            content += "        return dto;\n"
-            content += "    }\n"
+            fields.append({
+                "js_name": fname,
+                "py_name": pyname,
+                "ts_type": ts_type,
+                "is_json": f.get("is_json", False),
+                "is_model_list": is_model_list,
+                "inner_model": inner_model,
+            })
+        return fields
 
-            # Generate json getter for Table, Sheet, Workbook
-            # This mirrors Python's .json property
-            if class_name in ["Table", "Sheet", "Workbook"]:
-                content += "\n    /**\n"
-                content += "     * Returns a JSON-compatible plain object representation.\n"
-                content += "     * Mirrors Python's .json property.\n"
-                content += "     */\n"
-                content += "    get json(): any {\n"
-                
-                if class_name == "Table":
-                    content += "        return {\n"
-                    content += "            name: this.name,\n"
-                    content += "            description: this.description,\n"
-                    content += "            headers: this.headers,\n"
-                    content += "            rows: this.rows,\n"
-                    content += "            metadata: this.metadata ?? {},\n"
-                    content += "            startLine: this.startLine,\n"
-                    content += "            endLine: this.endLine,\n"
-                    content += "            alignments: this.alignments,\n"
-                    content += "        };\n"
-                elif class_name == "Sheet":
-                    content += "        return {\n"
-                    content += "            name: this.name,\n"
-                    content += "            tables: (this.tables || []).map((t: any) => t.json ? t.json : t),\n"
-                    content += "            sheetType: this.sheetType,\n"
-                    content += "            content: this.content,\n"
-                    content += "            metadata: this.metadata ?? {},\n"
-                    content += "        };\n"
-                elif class_name == "Workbook":
-                    content += "        return {\n"
-                    content += "            sheets: (this.sheets || []).map((s: any) => s.json ? s.json : s),\n"
-                    content += "            metadata: this.metadata ?? {},\n"
-                    content += "            rootContent: this.rootContent,\n"
-                    content += "        };\n"
-                
-                content += "    }\n"
+    def _build_methods_data(
+        self, class_name: str, raw_methods: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        """Build methods data for template rendering."""
+        methods = []
+        for m in raw_methods:
+            mname = re.sub(r"_([a-z])", lambda g: g.group(1).upper(), m["name"])
+            wit_flat_name = m["wit_name"]
+            wasm_name = re.sub(r"-([a-z])", lambda g: g.group(1).upper(), wit_flat_name)
 
-            # Methods
-            for m in info["methods"]:
-                mname = re.sub(r"_([a-z])", lambda g: g.group(1).upper(), m["name"])
-                wit_flat_name = m["wit_name"]
-                # camelCase import name
-                import_name = re.sub(
-                    r"-([a-z])", lambda g: g.group(1).upper(), wit_flat_name
-                )
+            args = []
+            call_args = ["dto"]
+            model_arg_dtos = []
 
-                # Params
-                # self is implicit in TS
-                args = []
-                call_args = ["this"]  # pass self object to flat function
-                model_arg_conversions = []  # Track model arguments that need toDTO
+            for p in m["params"]:
+                if p.name in ("self", "cls"):
+                    continue
+                ts_param = re.sub(r"_([a-z])", lambda g: g.group(1).upper(), p.name)
+                sig_param = ts_param
+                if p.default is not None:
+                    sig_param += "?"
+                args.append(f"{sig_param}: any")
 
-                for p in m["params"]:
-                    if p.name in ("self", "cls"):
-                        continue
+                # Check if argument is a known model type
+                if p.annotation:
+                    clean_type = str(p.annotation).strip()
+                    if " | None" in clean_type or "Optional[" in clean_type:
+                        clean_type = (
+                            clean_type.replace(" | None", "").replace("Optional[", "")[:-1]
+                            if "Optional[" in clean_type
+                            else clean_type.replace(" | None", "")
+                        )
+                    clean_type = clean_type.strip("'").strip('"')
 
-                    ts_param = re.sub(r"_([a-z])", lambda g: g.group(1).upper(), p.name)
-
-                    # Simple TS signature
-                    sig_param = ts_param
-                    if p.default is not None:
-                        sig_param += "?"
-
-                    args.append(f"{sig_param}: any")  # TODO specific types
-                    
-                    # Check if argument is a known model type (Table, Sheet, etc.)
-                    if p.annotation:
-                        clean_type = str(p.annotation).strip()
-                        # Remove Optional wrapper
-                        if " | None" in clean_type or "Optional[" in clean_type:
-                            clean_type = (
-                                clean_type.replace(" | None", "").replace("Optional[", "")[:-1]
-                                if "Optional[" in clean_type
-                                else clean_type.replace(" | None", "")
-                            )
-                        clean_type = clean_type.strip("'").strip('"')
-                        
-                        if clean_type in self.discovered_models:
-                            # This is a model argument - add conversion
-                            dto_var = f"{ts_param}Dto"
-                            model_arg_conversions.append(
-                                f"        const {dto_var} = {ts_param} instanceof {clean_type} ? {ts_param}.toDTO() : {ts_param};"
-                            )
-                            call_args.append(dto_var)
-                        else:
-                            call_args.append(ts_param)
+                    if clean_type in self.discovered_models:
+                        dto_var = f"{ts_param}Dto"
+                        model_arg_dtos.append({
+                            "var_name": dto_var,
+                            "param_name": ts_param,
+                            "model_name": clean_type,
+                        })
+                        call_args.append(dto_var)
                     else:
                         call_args.append(ts_param)
-
-                content += f"\n    {mname}({', '.join(args)}): any {{\n"
-
-                # Conversion of results if
-                # Fix type error: cast this to any
-                call_args[0] = "(this as any)"
-
-                # Create flattened DTO for calling WASM if we are passing 'this' (param named self_obj)
-                # Use toDTO to handle deep conversion
-                content += "        const dto = this.toDTO();\n"
-                call_args[0] = "dto"
-                
-                # Add model argument conversions
-                for conversion in model_arg_conversions:
-                    content += f"{conversion}\n"
-
-                if class_name == "Table" and mname == "toModels":
-                    content += "        const clientRes = clientSideToModels(this.headers, this.rows || [], schemaCls);\n"
-                    content += "        if (clientRes) {\n"
-                    content += "            return clientRes;\n"
-                    content += "        }\n"
-                    content += (
-                        f"        const res = _{import_name}({', '.join(call_args)});\n"
-                    )
-                    content += "        return res.map((x: string) => JSON.parse(x));\n"
-                    content += "    }\n"
-                    continue
                 else:
-                    content += (
-                        f"        const res = _{import_name}({', '.join(call_args)});\n"
-                    )
+                    call_args.append(ts_param)
 
-                # Check return type for wrapping
-                ret_py = str(m["ret"]) if m["ret"] else "None"
+            # Determine return characteristics
+            ret_py = str(m["ret"]) if m["ret"] else "None"
+            returns_self = False
+            returns_model = False
+            returns_optional_model = False
+            return_model = None
+            is_toModels = class_name == "Table" and mname == "toModels"
 
-                if ret_py == "None":
-                    # Mutation simulation: update this with result
-                    # Use constructor to properly hydrate (parse JSON metadata, wrap nested models)
-                    content += f"        const hydrated = new {class_name}(res);\n"
-                    content += "        Object.assign(this, hydrated);\n"
-                    content += "        return this;\n"
-                else:
-                    # More robust cleaning
-                    clean_ret = ret_py
-                    
-                    # Handle Optional[T] wrapper
-                    if clean_ret.startswith("Optional[") and clean_ret.endswith("]"):
-                        clean_ret = clean_ret[9:-1]
+            if ret_py == "None":
+                returns_self = True
+            else:
+                clean_ret = ret_py
+                if clean_ret.startswith("Optional[") and clean_ret.endswith("]"):
+                    clean_ret = clean_ret[9:-1]
+                if "|" in clean_ret:
+                    parts = [p.strip() for p in clean_ret.split("|")]
+                    real_types = [p for p in parts if p != "None"]
+                    if len(real_types) == 1:
+                        clean_ret = real_types[0]
+                clean_ret = clean_ret.strip("'").strip('"')
 
-                    # Handle Union (A | B) logic - usually it's T | None
-                    if "|" in clean_ret:
-                        parts = [p.strip() for p in clean_ret.split("|")]
-                        # specific filter for None
-                        real_types = [p for p in parts if p != "None"]
-                        if len(real_types) == 1:
-                            clean_ret = real_types[0]
-                    
-                    clean_ret = clean_ret.strip("'").strip('"')  # 'Table' -> Table
-
-                    if clean_ret in self.discovered_models:
-                        if clean_ret == class_name:
-                            # Use constructor to properly hydrate (parse JSON metadata, wrap nested models)
-                            content += f"        const hydrated = new {class_name}(res);\n"
-                            content += "        Object.assign(this, hydrated);\n"
-                            content += "        return this;\n"
-                        else:
-                            is_optional = "None" in ret_py or "Optional" in ret_py
-                            if is_optional:
-                                content += f"        return res ? new {clean_ret}(res) : undefined;\n"
-                            else:
-                                content += f"        return new {clean_ret}(res);\n"
+                if clean_ret in self.discovered_models:
+                    if clean_ret == class_name:
+                        returns_self = True
                     else:
-                        content += "        return res;\n"
+                        is_optional = "None" in ret_py or "Optional" in ret_py
+                        if is_optional:
+                            returns_optional_model = True
+                        else:
+                            returns_model = True
+                        return_model = clean_ret
 
-                content += "    }\n"
+            methods.append({
+                "name": mname,
+                "args": args,
+                "call_args": call_args,
+                "wasm_name": wasm_name,
+                "model_arg_dtos": model_arg_dtos,
+                "returns_self": returns_self,
+                "returns_model": returns_model,
+                "returns_optional_model": returns_optional_model,
+                "return_model": return_model,
+                "is_toModels": is_toModels,
+            })
+        return methods
 
-            content += "}\n"
-
-        with open(output_path, "w") as f:
-            f.write(content)
-        print(f"Generated TS Wrapper: {output_path}")
 
     def generate_wit_file(self, output_path: Path):
         wit_content = "package example:spreadsheet;\n\n"

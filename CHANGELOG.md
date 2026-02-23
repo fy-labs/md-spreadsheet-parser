@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.1] - 2026-02-23
+
+### 🐛 Bug Fixes
+
+fix: update repository URL to fy-labs for npm provenance
+
 ## [1.3.0] - 2026-02-23
 
 ### 🚀 New Features

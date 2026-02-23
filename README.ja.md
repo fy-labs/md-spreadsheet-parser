@@ -107,13 +107,13 @@ print(result.rows)
 ```
 
 **複数のテーブル (ワークブック)**
-複数のシート（セクション）を含むファイルを解析します。デフォルトでは、ルートマーカーとして `# Tables`、シート用には `## Sheet Name` を探します。
+複数のシート（セクション）を含むファイルを解析します。デフォルトでは、単一のH1ヘッダー (`# Workbook`) などをルートとして自動検出し、シートのヘッダーレベルを自動計算します。
 
 ```python
 from md_spreadsheet_parser import parse_workbook, MultiTableParsingSchema
 
 markdown = """
-# Tables
+# Workbook
 
 ## Users
 | ID | Name |
@@ -143,7 +143,7 @@ for sheet in workbook.sheets:
 from md_spreadsheet_parser import parse_workbook
 
 markdown = """
-# Tables
+# Workbook
 
 ## Sales Data
 
@@ -836,7 +836,7 @@ cat input.md | md-spreadsheet-parser
 
 **オプション:**
 - `--scan`: ワークブック構造を無視してすべてのテーブルをスキャンします（テーブルのリストを返します）。
-- `--root-marker`: ルートマーカーを設定します（デフォルト: `# Tables`）。
+- `--root-marker`: ルートマーカーを明示的に設定します（デフォルト: 自動検出）。
 - `--sheet-header-level`: シートのヘッダーレベルを設定します（デフォルト: 2）。
 - `--table-header-level`: テーブルのヘッダーレベルを設定します（デフォルト: 3）。
 - `--capture-description`: テーブルの説明をキャプチャします（デフォルト: True）。
@@ -857,7 +857,7 @@ cat input.md | md-spreadsheet-parser
 | `require_outer_pipes` | `True` | `True` の場合、生成されるMarkdownテーブルに外側のパイプが含まれます。 |
 | `strip_whitespace` | `True` | `True` の場合、セルの値から空白が除去されます。 |
 | `convert_br_to_newline` | `True` | `True` の場合、`<br>` タグは `\n` に変換されます（逆も同様）。 |
-| `root_marker` | `# Tables` | (MultiTable) データセクションの開始を示すマーカー。 |
+| `root_marker` | `None` | (MultiTable) データセクションの開始を示すマーカー。デフォルトは自動検出。 |
 | `sheet_header_level` | `2` | (MultiTable) シートのヘッダーレベル。 |
 | `table_header_level` | `3` | (MultiTable) テーブルのヘッダーレベル。 |
 | `capture_description` | `True` | (MultiTable) ヘッダーとテーブルの間のテキストをキャプチャします。 |

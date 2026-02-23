@@ -1,23 +1,35 @@
-import pytest
 from md_spreadsheet_parser import MultiTableParsingSchema
 
 
-def test_invalid_schema_configuration():
+def test_schema_with_explicit_root_marker_and_none_table_level():
     """
-    Test that MultiTableParsingSchema raises ValueError when
-    capture_description is True but table_header_level is None.
+    Test that MultiTableParsingSchema allows table_header_level=None
+    when root_marker is explicitly set (backward compatible behavior).
     """
-    with pytest.raises(
-        ValueError,
-        match="capture_description=True requires table_header_level to be set",
-    ):
-        MultiTableParsingSchema(capture_description=True, table_header_level=None)
+    schema = MultiTableParsingSchema(
+        root_marker="# Tables", capture_description=False, table_header_level=None
+    )
+    assert schema.table_header_level is None
+    assert schema.capture_description is False
 
 
 def test_valid_schema_configuration():
     """
     Test that a valid configuration passes.
     """
-    schema = MultiTableParsingSchema(capture_description=True, table_header_level=3)
+    schema = MultiTableParsingSchema(
+        root_marker="# Tables", capture_description=True, table_header_level=3
+    )
     assert schema.capture_description is True
     assert schema.table_header_level == 3
+
+
+def test_auto_detection_schema_defaults():
+    """
+    Test that schema with all None values (auto-detection mode) works.
+    """
+    schema = MultiTableParsingSchema()
+    assert schema.root_marker is None
+    assert schema.sheet_header_level is None
+    assert schema.table_header_level is None
+    assert schema.capture_description is True

@@ -143,6 +143,52 @@ If `metadata` is returned as a JSON string instead of object:
 2. Verify the adapter layer uses correct `convert_*` functions
 3. Use `assertMetadataIsObject` in tests to catch this early
 
+### Fields Missing in TypeScript Wrapper
+
+If new fields added to Python models are not accessible in TypeScript:
+
+1. **Check WIT definition** (`wit/generated.wit`):
+   - Verify the field is defined in the WIT record
+   - Example: `sheet-type: option<string>`
+
+2. **Check Python adapter** (`src/generated_adapter.py`):
+   - Verify `convert_*` function includes the field
+   - Example: `res.sheet_type = str(obj.sheet_type) if obj.sheet_type is not None else None`
+
+3. **Check TypeScript constructor** (`src/index.ts`):
+   - Verify the field assignment includes snake_case fallback
+   - Example: `this.sheetType = data.sheetType ?? data.sheet_type;`
+
+4. **Check the `.json` getter** (Critical!):
+   - The `.json` getter in TypeScript classes **must explicitly list all fields**
+   - This is the most common cause of missing fields in client applications
+   
+   ```typescript
+   // ❌ WRONG: Missing sheetType and content
+   get json(): any {
+       return {
+           name: this.name,
+           tables: (this.tables || []).map(...),
+           metadata: this.metadata ?? {},
+       };
+   }
+   
+   // ✅ CORRECT: All fields included
+   get json(): any {
+       return {
+           name: this.name,
+           tables: (this.tables || []).map(...),
+           sheetType: this.sheetType,
+           content: this.content,
+           metadata: this.metadata ?? {},
+       };
+   }
+   ```
+
+5. **Fix in `generate_wit.py`**:
+   - The `.json` getter is generated in `generate_wit.py` around line 843-870
+   - Add new fields to the appropriate class's `.json` getter template
+
 ## Verification Checklist
 
 Before committing NPM package changes:

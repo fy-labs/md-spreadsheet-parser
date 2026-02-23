@@ -431,6 +431,9 @@ def parse_sheet(
 ) -> Sheet:
     """
     Parse a sheet (section) containing one or more tables.
+
+    If the section contains valid tables, sheet_type="table" and content=None.
+    If no tables are found, sheet_type="doc" and content stores the raw markdown.
     """
     metadata: dict[str, Any] | None = None
 
@@ -446,7 +449,26 @@ def parse_sheet(
             pass  # Ignore invalid JSON
 
     tables = _extract_tables(markdown, schema, start_line_offset)
-    return Sheet(name=name, tables=tables, metadata=metadata)
+
+    # Determine sheet type based on whether tables were found
+    if tables:
+        # Table sheet: store tables but not raw content
+        return Sheet(
+            name=name,
+            tables=tables,
+            sheet_type="table",
+            content=None,
+            metadata=metadata,
+        )
+    else:
+        # Doc sheet: no tables, store the raw markdown content
+        return Sheet(
+            name=name,
+            tables=[],
+            sheet_type="doc",
+            content=markdown.rstrip() if markdown.strip() else None,
+            metadata=metadata,
+        )
 
 
 def parse_workbook(
@@ -454,6 +476,15 @@ def parse_workbook(
 ) -> Workbook:
     """
     Parse a markdown document into a Workbook.
+
+    When schema.root_marker is None, auto-detection is used:
+    1. If a single H1 header exists, it becomes the Workbook.
+    2. If md-spreadsheet metadata comment exists, the H1 containing it becomes Workbook.
+    3. Fallback to searching for "# Tables" or "# Workbook".
+    4. If not found, return empty Workbook.
+
+    When root_marker/sheet_header_level/table_header_level are None,
+    they are auto-calculated from the detected workbook level.
     """
     lines = markdown.split("\n")
     sheets: list[Sheet] = []
@@ -481,25 +512,175 @@ def parse_workbook(
 
     lines = filtered_lines
 
-    # Find root marker
-    start_index = 0
-    in_code_block = False
-    if schema.root_marker:
-        found = False
+    # Determine root marker and header levels
+    root_marker = schema.root_marker
+    workbook_name = "Workbook"
+    workbook_level = 1  # Default H1
+
+    if root_marker is None:
+        # Auto-detection mode
+        # Find all H1 headers (not in code blocks)
+        h1_headers: list[tuple[int, str]] = []  # (line_index, header_text)
+        in_code_block = False
+
         for i, line in enumerate(lines):
             stripped = line.strip()
             if stripped.startswith("```"):
                 in_code_block = not in_code_block
+            elif (
+                not in_code_block
+                and stripped.startswith("# ")
+                and not stripped.startswith("## ")
+            ):
+                # This is an H1 header (starts with "# " but not "## ")
+                header_text = stripped[2:].strip()
+                h1_headers.append((i, header_text))
 
-            if not in_code_block and stripped == schema.root_marker:
-                start_index = i + 1
-                found = True
-                break
-        if not found:
-            return Workbook(sheets=[], metadata=metadata)
+        if len(h1_headers) == 1:
+            # Single H1: use it as workbook
+            root_marker = h1_headers[0][1]
+            workbook_name = root_marker
+            root_marker = "# " + root_marker
+            workbook_level = 1
+        elif metadata is not None and len(h1_headers) > 0:
+            # Step 3: If md-spreadsheet metadata exists, find the H1 that contains it
+            # The metadata comment should be inside a section, so we find the H1
+            # header that precedes the metadata comment location.
+            # Since we already extracted metadata, we need to find which H1 section
+            # contains it by re-scanning the original lines.
+
+            # Re-scan original lines to find metadata line index
+            original_lines = markdown.split("\n")
+            metadata_line_idx = None
+            for i, line in enumerate(original_lines):
+                stripped = line.strip()
+                if wb_metadata_pattern.match(stripped):
+                    metadata_line_idx = i
+                    break
+
+            if metadata_line_idx is not None:
+                # Find the H1 header that precedes this metadata line
+                # Map original line indices to filtered line indices
+                selected_h1 = None
+                for line_idx, header_text in h1_headers:
+                    # h1_headers contains indices in filtered_lines
+                    # Need to find corresponding original index
+                    # Actually, h1_headers was built from filtered_lines (after metadata removal)
+                    # So we need to re-scan original to find H1 before metadata
+                    pass
+
+                # Simpler approach: scan original lines for H1 headers before metadata
+                in_code_block = False
+                for i in range(metadata_line_idx - 1, -1, -1):
+                    stripped = original_lines[i].strip()
+                    if stripped.startswith("```"):
+                        in_code_block = not in_code_block
+                    elif (
+                        not in_code_block
+                        and stripped.startswith("# ")
+                        and not stripped.startswith("## ")
+                    ):
+                        # Found the H1 header that contains the metadata
+                        header_text = stripped[2:].strip()
+                        root_marker = "# " + header_text
+                        workbook_name = header_text
+                        workbook_level = 1
+                        selected_h1 = header_text
+                        break
+
+                if selected_h1 is None:
+                    # Metadata exists but no H1 before it - use first H1
+                    if h1_headers:
+                        root_marker = h1_headers[0][1]
+                        workbook_name = root_marker
+                        root_marker = "# " + root_marker
+                        workbook_level = 1
+            else:
+                # Shouldn't happen since metadata was found
+                pass
+
+        if root_marker is None:
+            # Multiple or no H1: fallback to "# Tables" or "# Workbook"
+            in_code_block = False
+            for i, line in enumerate(lines):
+                stripped = line.strip()
+                if stripped.startswith("```"):
+                    in_code_block = not in_code_block
+                elif not in_code_block:
+                    if stripped == "# Tables":
+                        root_marker = "# Tables"
+                        workbook_name = "Tables"
+                        workbook_level = 1
+                        break
+                    elif stripped == "# Workbook":
+                        root_marker = "# Workbook"
+                        workbook_name = "Workbook"
+                        workbook_level = 1
+                        break
+            if root_marker is None:
+                # No workbook found
+                return Workbook(sheets=[], name=workbook_name, metadata=metadata)
+    else:
+        # Explicit root_marker: extract name and level from it
+        if root_marker.startswith("#"):
+            level = 0
+            for char in root_marker:
+                if char == "#":
+                    level += 1
+                else:
+                    break
+            workbook_level = level
+            workbook_name = root_marker[level:].strip()
+
+    # Calculate header levels if not explicitly set
+    # Only auto-calculate from workbook_level if root_marker was auto-detected
+    # When root_marker is explicit, honor the explicit None values (meaning "no headers")
+    root_marker_auto_detected = schema.root_marker is None
+
+    if schema.sheet_header_level is not None:
+        sheet_header_level = schema.sheet_header_level
+    elif root_marker_auto_detected:
+        sheet_header_level = workbook_level + 1
+    else:
+        # Explicit root_marker but no sheet_header_level: default to 2
+        sheet_header_level = 2
+
+    if schema.table_header_level is not None:
+        table_header_level: int | None = schema.table_header_level
+    elif root_marker_auto_detected:
+        table_header_level = workbook_level + 2
+    else:
+        # Explicit root_marker but no table_header_level: keep as None (no table headers)
+        table_header_level = None
+
+    # Create an effective schema with resolved values
+    effective_schema = replace(
+        schema,
+        root_marker=root_marker,
+        sheet_header_level=sheet_header_level,
+        table_header_level=table_header_level,
+    )
+
+    # Find root marker
+    start_index = 0
+    workbook_start_line: int | None = None
+    in_code_block = False
+    found = False
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_code_block = not in_code_block
+
+        if not in_code_block and stripped == root_marker:
+            start_index = i + 1
+            workbook_start_line = i
+            found = True
+            break
+    if not found:
+        return Workbook(sheets=[], name=workbook_name, metadata=metadata)
 
     # Split by sheet headers
-    header_prefix = "#" * schema.sheet_header_level + " "
+    header_prefix = "#" * sheet_header_level + " "
 
     current_sheet_name: str | None = None
     current_sheet_lines: list[str] = []
@@ -510,6 +691,14 @@ def parse_workbook(
     # We assume valid markdown structure where root marker is not inside a code block (handled above).
     in_code_block = False
 
+    # Capture root content (text between workbook header and first sheet header)
+    root_content_lines: list[str] = []
+
+    # Track workbook section end line
+    # If loop breaks due to another H1, end is line before that H1
+    # Otherwise end is the last line of the file
+    workbook_end_line: int | None = None
+
     for idx, line in enumerate(lines[start_index:], start=start_index):
         stripped = line.strip()
 
@@ -517,9 +706,12 @@ def parse_workbook(
             in_code_block = not in_code_block
 
         if in_code_block:
-            # Just collect lines if we are in a sheet
+            # Just collect lines if we are in a sheet or root content
             if current_sheet_name:
                 current_sheet_lines.append(line)
+            else:
+                root_content_lines.append(line)
+            workbook_end_line = idx + 1  # Track last line in section
             continue
 
         # Check if line is a header
@@ -534,30 +726,37 @@ def parse_workbook(
 
             # If header level is less than sheet_header_level (e.g. # vs ##),
             # it indicates a higher-level section, so we stop parsing the workbook.
-            if level < schema.sheet_header_level:
+            if level < sheet_header_level:
+                # workbook_end_line is already set to last processed line
                 break
 
-        if stripped.startswith(header_prefix):
-            if current_sheet_name:
-                sheet_content = "\n".join(current_sheet_lines)
-                # The content starts at current_sheet_start_line + 1 (header line)
-                # Wait, current_sheet_lines collected lines AFTER the header.
-                # So the offset for content is current_sheet_start_line + 1.
-                sheets.append(
-                    parse_sheet(
-                        sheet_content,
-                        current_sheet_name,
-                        schema,
-                        start_line_offset=current_sheet_start_line + 1,
+            # If header match sheet_header_level, it's a new sheet
+            if level == sheet_header_level and stripped.startswith(header_prefix):
+                if current_sheet_name:
+                    sheet_content = "\n".join(current_sheet_lines)
+                    sheets.append(
+                        parse_sheet(
+                            sheet_content,
+                            current_sheet_name,
+                            effective_schema,
+                            start_line_offset=current_sheet_start_line + 1,
+                        )
                     )
-                )
 
-            current_sheet_name = stripped[len(header_prefix) :].strip()
-            current_sheet_lines = []
-            current_sheet_start_line = idx
+                current_sheet_name = stripped[len(header_prefix) :].strip()
+                current_sheet_lines = []
+                current_sheet_start_line = idx
+                workbook_end_line = idx + 1
+                continue
+
+        # Not a sheet header
+        if current_sheet_name:
+            current_sheet_lines.append(line)
         else:
-            if current_sheet_name:
-                current_sheet_lines.append(line)
+            # We are in root content area (between Workbook header and first Sheet)
+            root_content_lines.append(line)
+
+        workbook_end_line = idx + 1  # Track last line processed (exclusive end)
 
     if current_sheet_name:
         sheet_content = "\n".join(current_sheet_lines)
@@ -565,12 +764,31 @@ def parse_workbook(
             parse_sheet(
                 sheet_content,
                 current_sheet_name,
-                schema,
+                effective_schema,
                 start_line_offset=current_sheet_start_line + 1,
             )
         )
 
-    return Workbook(sheets=sheets, metadata=metadata)
+    # If no lines were processed, end_line is start_line + 1
+    if workbook_end_line is None:
+        workbook_end_line = (
+            workbook_start_line + 1 if workbook_start_line is not None else None
+        )
+
+    root_content: str | None = None
+    if root_content_lines:
+        content = "\n".join(root_content_lines)
+        if content.strip():
+            root_content = content.strip()
+
+    return Workbook(
+        sheets=sheets,
+        name=workbook_name,
+        start_line=workbook_start_line,
+        end_line=workbook_end_line,
+        metadata=metadata,
+        root_content=root_content,
+    )
 
 
 def scan_tables(

@@ -53,8 +53,8 @@ function resolveToVirtualPath(p: string): string {
 export async function {{ func.js_name }}({{ func.args | join(', ') }}): Promise<any> {
     await ensureNodeEnvironment();
 {% for arg in func.call_args %}
-{% if arg.name == 'source' %}
-    const {{ arg.name }}_resolved = resolveToVirtualPath({{ arg.name }});
+{% if arg == 'source' %}
+    const source_resolved = resolveToVirtualPath(source);
 {% endif %}
 {% endfor %}
     const res = _{{ func.wasm_func_name }}({{ func.resolved_call_args | join(', ') }});

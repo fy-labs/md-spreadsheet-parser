@@ -132,19 +132,7 @@ When submitting a PR, please confirm:
 - [ ] **Typing**: `uv run mypy .` passes with "Success: no issues found"?
 - [ ] **Documentation**: `README.md` updated if public API changed?
 
-## 7. Release for Pyodide (Pre-compiled)
-
-To support faster loading in the VS Code extension (which uses Pyodide), we can generate a wheel containing pre-compiled bytecode (`.pyc`) instead of source code (`.py`).
-
-Run the following script from the project root:
-
-```bash
-uv run --python 3.12 python scripts/build_pyc_wheel.py
-```
-
-This will generate a `.whl` in `dist/piodide/` that is optimized for Pyodide 0.26+ (running Python 3.12). This wheel should be copied to the VS Code extension's `resources/` directory.
-
-## 8. Documentation & i18n
+## 7. Documentation & i18n
 
 We support bilingual documentation (English and Japanese) using `mkdocs-static-i18n`.
 

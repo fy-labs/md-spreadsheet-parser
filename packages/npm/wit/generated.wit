@@ -17,12 +17,18 @@ interface types {
     record sheet {
         name: string,
         tables: list<table>,
+        sheet-type: option<string>,
+        content: option<string>,
         metadata: option<string>,
     }
     
     record workbook {
         sheets: list<sheet>,
+        name: option<string>,
+        start-line: option<s32>,
+        end-line: option<s32>,
         metadata: option<string>,
+        root-content: option<string>,
     }
     
     record parsing-schema {

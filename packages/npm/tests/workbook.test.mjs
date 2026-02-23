@@ -217,6 +217,16 @@ export function runWorkbookTests() {
         assert(afterRename.sheets[0].tables[0].name === "T1", "nested table name");
         assertEqual(afterRename.sheets[0].tables[0].metadata, { table_key: "table_value" }, "nested table metadata");
 
+        // Test: rootContent
+        const wbWithRootContent = parseWorkbook(`# Root Content WB
+
+This is root content.
+
+## Sheet1
+`);
+        assert(wbWithRootContent.rootContent === "This is root content.", "rootContent should be captured");
+        assert(wbWithRootContent.json.rootContent === "This is root content.", "json.rootContent should be present");
+
         console.log("   ✅ Workbook tests verified");
     } catch (e) {
         console.error("   ❌ Workbook tests failed:", e);

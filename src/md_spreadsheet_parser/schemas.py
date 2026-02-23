@@ -46,15 +46,20 @@ class MultiTableParsingSchema(ParsingSchema):
     Inherits from ParsingSchema.
 
     Attributes:
-        root_marker (str): The marker indicating the start of the data section. Defaults to "# Tables".
-        sheet_header_level (int): The markdown header level for sheets. Defaults to 2 (e.g. `## Sheet`).
-        table_header_level (int | None): The markdown header level for tables. If None, table names are not extracted. Defaults to None.
-        capture_description (bool): Whether to capture text between the table header and the table as a description. Defaults to False.
+        root_marker (str | None): The marker indicating the start of the data section.
+            If None, auto-detection is used: single H1 → Workbook, or fallback to
+            "# Tables" / "# Workbook". Defaults to None.
+        sheet_header_level (int | None): The markdown header level for sheets.
+            If None, derived from workbook_level + 1. Defaults to None.
+        table_header_level (int | None): The markdown header level for tables.
+            If None, derived from workbook_level + 2. Defaults to None.
+        capture_description (bool): Whether to capture text between the table header
+            and the table as a description. Defaults to True.
     """
 
-    root_marker: str = "# Tables"
-    sheet_header_level: int = 2
-    table_header_level: int | None = 3
+    root_marker: str | None = None
+    sheet_header_level: int | None = None
+    table_header_level: int | None = None
     capture_description: bool = True
 
     def __post_init__(self):
@@ -70,19 +75,11 @@ class MultiTableParsingSchema(ParsingSchema):
         if self.convert_br_to_newline is None:
             object.__setattr__(self, "convert_br_to_newline", True)
 
-        # Handle Own fields
-        if self.root_marker is None:
-            object.__setattr__(self, "root_marker", "# Tables")
-        if self.sheet_header_level is None:
-            object.__setattr__(self, "sheet_header_level", 2)
-        # table_header_level can be None
+        # root_marker, sheet_header_level, table_header_level can all be None
+        # (auto-detection is handled in parsing.py)
+
         if self.capture_description is None:
             object.__setattr__(self, "capture_description", True)
-
-        if self.capture_description and self.table_header_level is None:
-            raise ValueError(
-                "capture_description=True requires table_header_level to be set"
-            )
 
 
 @dataclass(frozen=True)

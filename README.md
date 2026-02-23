@@ -111,13 +111,13 @@ print(result.rows)
 ```
 
 **Multiple Tables (Workbook)**
-Parse a file containing multiple sheets (sections). By default, it looks for `# Tables` as the root marker and `## Sheet Name` for sheets.
+Parse a file containing multiple sheets (sections). By default, it auto-detects the workbook root (e.g., a single `# Workbook` header) and calculates sheet headers automatically.
 
 ```python
 from md_spreadsheet_parser import parse_workbook, MultiTableParsingSchema
 
 markdown = """
-# Tables
+# Workbook
 
 ## Users
 | ID | Name |
@@ -147,7 +147,7 @@ Retrieve sheets and tables directly by name, and access parsed metadata like des
 from md_spreadsheet_parser import parse_workbook
 
 markdown = """
-# Tables
+# Workbook
 
 ## Sales Data
 
@@ -841,7 +841,7 @@ cat input.md | md-spreadsheet-parser
 
 **Options:**
 - `--scan`: Scan for all tables ignoring workbook structure (returns a list of tables).
-- `--root-marker`: Set the root marker (default: `# Tables`).
+- `--root-marker`: Set the root marker explicitly (default: auto-detect).
 - `--sheet-header-level`: Set sheet header level (default: 2).
 - `--table-header-level`: Set table header level (default: 3).
 - `--capture-description`: Capture table descriptions (default: True).
@@ -862,7 +862,7 @@ Customize parsing behavior using `ParsingSchema` and `MultiTableParsingSchema`.
 | `require_outer_pipes` | `True` | If `True`, generated markdown tables will include outer pipes. |
 | `strip_whitespace` | `True` | If `True`, whitespace is stripped from cell values. |
 | `convert_br_to_newline` | `True` | If `True`, `<br>` tags are converted to `\n` (and back). |
-| `root_marker` | `# Tables` | (MultiTable) Marker indicating start of data section. |
+| `root_marker` | `None` | (MultiTable) Marker indicating start of data section. Defaults to auto-detect. |
 | `sheet_header_level` | `2` | (MultiTable) Header level for sheets. |
 | `table_header_level` | `3` | (MultiTable) Header level for tables. |
 | `capture_description` | `True` | (MultiTable) Capture text between header and table. |

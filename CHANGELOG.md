@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.3.0] - 2026-02-23
+
+### 🚀 New Features
+
+Add flexible workbook detection and doc sheet support.
+
+**Workbook Auto-Detection** (`root_marker=None`):
+- Single H1 header is auto-detected as workbook root
+- H1 containing `<!-- md-spreadsheet- ... -->` metadata comment is detected
+- Fallback search for `# Tables` or `# Workbook`
+- Sheet/table header levels auto-calculated from workbook level
+
+**New Sheet Fields**:
+- `Sheet.type`: `"table"` or `"doc"`
+- `Sheet.content`: Raw markdown for doc sheets
+
+**New Workbook Fields**:
+- `Workbook.name`: Extracted from detected root marker
+- `Workbook.root_content`: Captures content between workbook header and first sheet header
+
+**Backward Compatibility**:
+- Explicit `root_marker` preserves existing behavior
+- `table_header_level=None` with explicit root still means "no table headers"
+
 ## [1.2.2] - 2026-01-23
 
 ### 📚 Documentation

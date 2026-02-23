@@ -55,7 +55,7 @@ class TestDocSheetToMarkdown:
 
         assert "## Empty Notes" in markdown
         # Should not have content after header (just empty or minimal output)
-        lines = [l for l in markdown.strip().split("\n") if l.strip()]
+        lines = [line for line in markdown.strip().split("\n") if line.strip()]
         assert len(lines) == 1  # Just the header
 
     def test_doc_sheet_with_metadata(self):
@@ -177,7 +177,9 @@ class TestMixedSheetsToMarkdown:
     def test_mixed_sheets_output(self):
         """Workbook with both table and doc sheets outputs correctly."""
         table = Table(headers=["A", "B"], rows=[["1", "2"]])
-        table_sheet = Sheet(name="Data", tables=[table], sheet_type="table", content=None)
+        table_sheet = Sheet(
+            name="Data", tables=[table], sheet_type="table", content=None
+        )
         doc_sheet = Sheet(
             name="README",
             tables=[],

@@ -225,4 +225,5 @@ Some documentation text here.
     # Sheet without table
     assert workbook.sheets[1].name == "Notes"
     assert workbook.sheets[1].sheet_type == "doc"
+    assert workbook.sheets[1].content is not None
     assert "Some documentation text here." in workbook.sheets[1].content

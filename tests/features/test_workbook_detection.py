@@ -210,6 +210,7 @@ Some more content.
         assert workbook.name == "Real H1"
         assert len(workbook.sheets) == 1
         assert workbook.sheets[0].name == "Sheet1"
+        assert workbook.sheets[0].content is not None
         assert "# Not a Real H1" in workbook.sheets[0].content
 
     def test_multiple_code_blocks_with_h1(self):

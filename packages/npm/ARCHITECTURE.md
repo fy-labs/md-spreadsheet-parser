@@ -153,20 +153,19 @@ The generator includes comprehensive unit tests:
 
 ```
 scripts/tests/
-├── test_name_converter.py   # 16 tests - Naming conversion utilities
-├── test_type_mapper.py      # 17 tests - Type mapping logic
-├── test_scanner.py          # 8 tests  - Module scanning
-├── test_template_rendering.py  # 6 tests - Template output
-└── test_dist_output.py      # 10 tests - Generated code verification
+├── test_name_converter.py      # 16 tests - Naming conversion utilities
+├── test_type_mapper.py         # 21 tests - Type mapping logic
+├── test_scanner.py             # 8 tests  - Module scanning
+└── test_template_rendering.py  # 6 tests - Template output
 ```
 
-Run with: `npm run test:generator`
+Run with: `uv run pytest scripts/tests/`
 
 ## 5. Verification Strategy
 
 We verify compatibility using multiple approaches:
 
-1. **Generator Unit Tests**: `npm run test:generator` (61 tests)
+1. **Generator Unit Tests**: `uv run pytest scripts/tests/` (51 tests)
 2. **Runtime Integration**: `npm test` (end-to-end verification)
 3. **API Coverage Audit**: `uv run python scripts/verify_api_coverage.py`
 
@@ -211,4 +210,4 @@ The API coverage script scans both Python and TypeScript to verify 100% structur
     - Detect the new fields/methods via Griffe.
     - Update `generated.wit`, `generated_adapter.py`, `app.py`, and `src/index.ts`.
     - Recompile the WASM.
-3.  **Run Tests**: `npm test && npm run test:generator`
+3.  **Run Tests**: `npm test && uv run pytest scripts/tests/`

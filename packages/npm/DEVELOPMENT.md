@@ -197,7 +197,7 @@ Before committing NPM package changes:
 - [ ] Pyright passes: `uv run pyright`
 - [ ] NPM build succeeds: `npm run build`
 - [ ] NPM tests pass: `npm test`
-- [ ] Generator tests pass: `npm run test:generator`
+- [ ] Generator tests pass: `uv run pytest packages/npm/scripts/tests/`
 - [ ] API coverage verified: `uv run python scripts/verify_api_coverage.py`
 
 ## See Also

@@ -227,6 +227,40 @@ This is root content.
         assert(wbWithRootContent.rootContent === "This is root content.", "rootContent should be captured");
         assert(wbWithRootContent.json.rootContent === "This is root content.", "json.rootContent should be present");
 
+        // ============================================================
+        // Test: Dendron Daily Note YAML Frontmatter
+        // ============================================================
+        const dendronMd = `---
+id: 1234567890abc
+title: "2026-02-25"
+desc: 'Daily note for today'
+updated: 1708851375000
+created: 1708851375000
+tags:
+  - daily
+  - journal
+custom:
+  weather: sunny
+  mood: 5 # Rating out of 5
+---
+## Tasks
+| Task | Status |
+|---|---|
+| Buy milk | [ ] |
+| Write code | [x] |
+`;
+        const dendronWb = parseWorkbook(dendronMd);
+
+        // Assert title became name
+        assert(dendronWb.name === "2026-02-25", "Dendron title to Workbook name");
+
+        // Assert metadata parsed securely
+        assertMetadataIsObject(dendronWb.metadata, "Dendron metadata is native object");
+        assert(dendronWb.metadata["id"] === "1234567890abc", "Dendron metadata string");
+        assert(dendronWb.metadata["updated"] === 1708851375000, "Dendron metadata int");
+        assertArrayEqual(dendronWb.metadata["tags"], ["daily", "journal"], "Dendron metadata array");
+        assertEqual(dendronWb.metadata["custom"], { weather: "sunny", mood: 5 }, "Dendron metadata nested dict");
+
         console.log("   ✅ Workbook tests verified");
     } catch (e) {
         console.error("   ❌ Workbook tests failed:", e);

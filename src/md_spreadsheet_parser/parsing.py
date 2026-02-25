@@ -5,6 +5,7 @@ from typing import Any
 
 from .models import AlignmentType, Sheet, Table, Workbook
 from .schemas import DEFAULT_SCHEMA, MultiTableParsingSchema, ParsingSchema
+from .yaml_parser import extract_frontmatter, parse_yaml_frontmatter
 
 
 def clean_cell(cell: str, schema: ParsingSchema) -> str:
@@ -486,7 +487,17 @@ def parse_workbook(
     When root_marker/sheet_header_level/table_header_level are None,
     they are auto-calculated from the detected workbook level.
     """
-    lines = markdown.split("\n")
+    frontmatter_text, remaining_markdown = extract_frontmatter(markdown)
+    frontmatter_metadata: dict[str, Any] = {}
+    if frontmatter_text is not None:
+        frontmatter_metadata = parse_yaml_frontmatter(frontmatter_text)
+
+    # If the frontmatter does not have a title, it does not constitute a Workbook,
+    # and its metadata should not be implicitly merged into subsequent Workbooks.
+    if "title" not in frontmatter_metadata:
+        frontmatter_metadata = {}
+
+    lines = remaining_markdown.split("\n")
     sheets: list[Sheet] = []
     metadata: dict[str, Any] | None = None
 
@@ -512,10 +523,25 @@ def parse_workbook(
 
     lines = filtered_lines
 
+    # Merge frontmatter metadata (takes precedence over comment metadata)
+    if frontmatter_metadata:
+        if metadata is None:
+            metadata = {}
+        metadata.update(frontmatter_metadata)
+
     # Determine root marker and header levels
     root_marker = schema.root_marker
     workbook_name = "Workbook"
     workbook_level = 1  # Default H1
+
+    virtual_root = False
+    if root_marker is None and "title" in frontmatter_metadata:
+        title_val = str(frontmatter_metadata["title"]).strip()
+        if title_val:
+            root_marker = "# " + title_val
+            workbook_name = title_val
+            workbook_level = 1
+            virtual_root = True
 
     if root_marker is None:
         # Auto-detection mode
@@ -666,16 +692,23 @@ def parse_workbook(
     workbook_start_line: int | None = None
     in_code_block = False
     found = False
-    for i, line in enumerate(lines):
-        stripped = line.strip()
-        if stripped.startswith("```"):
-            in_code_block = not in_code_block
 
-        if not in_code_block and stripped == root_marker:
-            start_index = i + 1
-            workbook_start_line = i
-            found = True
-            break
+    if virtual_root:
+        start_index = 0
+        workbook_start_line = 0
+        found = True
+    else:
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            if stripped.startswith("```"):
+                in_code_block = not in_code_block
+
+            if not in_code_block and stripped == root_marker:
+                start_index = i + 1
+                workbook_start_line = i
+                found = True
+                break
+
     if not found:
         return Workbook(sheets=[], name=workbook_name, metadata=metadata)
 

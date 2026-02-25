@@ -45,6 +45,7 @@ Read in Japanese: 日本語版はこちら(
 - [Installation](#installation)
 - [Usage](#usage)
     - [1. Basic Parsing](#1-basic-parsing)
+    - [YAML Frontmatter & Metadata](#yaml-frontmatter--metadata)
     - [GFM Feature Support](#gfm-feature-support)
     - [2. Type-Safe Validation](#2-type-safe-validation-recommended)
         - [Pydantic Integration](#pydantic-integration)
@@ -213,6 +214,26 @@ Available helpers:
 - `parse_workbook_from_file(path_or_file)`
 - `scan_tables_from_file(path_or_file)`
 
+### YAML Frontmatter & Metadata
+
+The parser supports extracting YAML frontmatter from the beginning of a document. 
+If the frontmatter contains a `title` property, it is automatically treated as the document's primary H1 heading (`Workbook.name`), and its keys are stored in `Workbook.metadata`. Frontmatter without a `title` is ignored and not treated as a Workbook.
+
+```python
+markdown = """---
+title: My Project
+author: Alice
+---
+## Sheet 1
+| A |
+|---|
+| 1 |
+"""
+workbook = parse_workbook(markdown)
+print(workbook.name)          # "My Project"
+print(workbook.metadata)      # {"title": "My Project", "author": "Alice"}
+```
+
 ### GFM Feature Support
 
 The parser strictly adheres to GitHub Flavored Markdown (GFM) specifications for tables.
@@ -280,7 +301,7 @@ except TableValidationError as e:
 
 **Features:**
 *   **Type Conversion**: Automatically converts strings to `int`, `float`, `bool` using standard rules.
-*   **Boolean Handling (Default)**: Supports standard pairs out-of-the-box: `true/false`, `yes/no`, `on/off`, `1/0`. (See [Advanced Type Conversion](#7-advanced-type-conversion) for customization).
+*   **Boolean Handling (Default)**: Supports standard pairs out-of-the-box: `true/false`, `yes/no`, `on/off`, `1/0`, and native GFM Task Lists `[x]/[ ]`. (See [Advanced Type Conversion](#8-advanced-type-conversion) for customization).
 *   **Optional Fields**: Handles `Optional[T]` by converting empty strings to `None`.
 *   **Validation**: Raises detailed errors if data doesn't match the schema.
 

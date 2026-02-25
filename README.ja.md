@@ -41,6 +41,7 @@
 - [インストール](#インストール)
 - [使い方](#使い方)
     - [1. 基本的な解析](#1-基本的な解析)
+    - [YAMLフロントマターとメタデータ](#yamlフロントマターとメタデータ)
     - [GFM機能のサポート](#gfm機能のサポート)
     - [2. 型安全な検証](#2-型安全な検証-推奨)
         - [Pydantic連携](#pydantic連携)
@@ -209,6 +210,26 @@ workbook = parse_workbook_from_file("data.md")
 - `parse_workbook_from_file(path_or_file)`
 - `scan_tables_from_file(path_or_file)`
 
+### YAMLフロントマターとメタデータ
+
+ドキュメントの先頭からYAMLフロントマターを抽出することをサポートしています。
+フロントマターに `title` プロパティが含まれている場合、自動的にドキュメントのプライマリH1ヘッダー (`Workbook.name`) として扱われ、そのキーは `Workbook.metadata` に保存されます。`title` を含まないフロントマターは無視され、ワークブックとは見なされません。
+
+```python
+markdown = """---
+title: My Project
+author: Alice
+---
+## Sheet 1
+| A |
+|---|
+| 1 |
+"""
+workbook = parse_workbook(markdown)
+print(workbook.name)          # "My Project"
+print(workbook.metadata)      # {"title": "My Project", "author": "Alice"}
+```
+
 ### GFM機能のサポート
 
 パーサーは、テーブルに関するGitHub Flavored Markdown (GFM) 仕様に厳密に準拠しています。
@@ -276,7 +297,7 @@ except TableValidationError as e:
 
 **機能:**
 *   **型変換**: 文字列を標準的なルールで自動的に `int`, `float`, `bool` に変換します。
-*   **ブール値の処理 (デフォルト)**: 標準的なペア `true/false`, `yes/no`, `on/off`, `1/0` を即座にサポートします。（カスタマイズについては [高度な型変換](#8-高度な型変換) を参照）。
+*   **ブール値の処理 (デフォルト)**: 標準的なペア `true/false`, `yes/no`, `on/off`, `1/0`、およびネイティブのGFMタスクリスト `[x]/[ ]` を即座にサポートします。（カスタマイズについては [高度な型変換](#8-高度な型変換) を参照）。
 *   **オプションフィールド**: 空文字列を `None` に変換することで `Optional[T]` を処理します。
 *   **検証**: データがスキーマに一致しない場合、詳細なエラーを発生させます。
 
@@ -582,9 +603,12 @@ markdown = """
 | Suzuki | いいえ |
 """
 
-# "はい" -> True, "いいえ" -> False を設定
+# "はい" -> True, "いいえ" -> False を設定、それにタスクリストも
 schema = ConversionSchema(
-    boolean_pairs=(("はい", "いいえ"),)
+    boolean_pairs=(
+        ("はい", "いいえ"),
+        ("[x]", "[ ]")
+    )
 )
 
 users = parse_table(markdown).to_models(User, conversion_schema=schema)

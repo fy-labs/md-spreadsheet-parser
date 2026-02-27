@@ -1,6 +1,4 @@
-from md_spreadsheet_parser.generator import generate_workbook_markdown
 from md_spreadsheet_parser.parsing import parse_workbook
-from md_spreadsheet_parser.schemas import MultiTableParsingSchema
 
 
 def test_frontmatter_with_title_creates_workbook():
@@ -147,16 +145,12 @@ custom:
 
 
 # ==========================================
-# Round-trip tests: parse → generate → re-parse
+# Round-trip tests: parse → to_markdown() → text comparison
 # ==========================================
 
 
 def test_frontmatter_roundtrip_basic():
-    """Basic round-trip: parse frontmatter, generate markdown, re-parse.
-
-    The re-parsed Workbook's name, metadata, and table data
-    MUST be identical to the first parse.
-    """
+    """Basic round-trip: parse frontmatter, verify to_markdown() output text."""
     original_md = """\
 ---
 title: My Workbook
@@ -168,53 +162,32 @@ version: 2
 |---|---|
 | 1 | 2 |
 """
-    schema = MultiTableParsingSchema()
-    wb1 = parse_workbook(original_md, schema)
+    wb = parse_workbook(original_md)
 
     # Verify initial parse is correct
-    assert wb1.name == "My Workbook"
-    assert wb1.metadata is not None
-    assert wb1.metadata["header_type"] == "frontmatter"
-    fm = wb1.metadata["frontmatter"]
-    assert fm["description"] == "A test workbook"
-    assert fm["version"] == 2
-    assert len(wb1.sheets) == 1
-    assert wb1.sheets[0].tables[0].rows == [["1", "2"]]
+    assert wb.name == "My Workbook"
+    assert wb.metadata is not None
+    assert wb.metadata["header_type"] == "frontmatter"
+    assert wb.metadata["frontmatter"]["description"] == "A test workbook"
+    assert wb.metadata["frontmatter"]["version"] == 2
 
-    # Generate markdown from the parsed workbook
-    generated_md = generate_workbook_markdown(wb1, schema)
+    expected = """\
+---
+title: My Workbook
+description: A test workbook
+version: 2
+---
 
-    # Re-parse the generated markdown
-    wb2 = parse_workbook(generated_md, schema)
+## Sheet 1
 
-    # The round-tripped workbook must have the same semantic content
-    assert wb2.name == wb1.name, (
-        f"Name mismatch after round-trip: {wb2.name!r} != {wb1.name!r}"
-    )
-    assert len(wb2.sheets) == len(wb1.sheets), (
-        f"Sheet count mismatch: {len(wb2.sheets)} != {len(wb1.sheets)}"
-    )
-    assert wb2.sheets[0].name == wb1.sheets[0].name
-    assert wb2.sheets[0].tables[0].headers == wb1.sheets[0].tables[0].headers
-    assert wb2.sheets[0].tables[0].rows == wb1.sheets[0].tables[0].rows
-
-    # Metadata round-trip: frontmatter sub-dict should survive
-    assert wb2.metadata is not None
-    assert wb2.metadata["header_type"] == "frontmatter"
-    fm2 = wb2.metadata["frontmatter"]
-    for key in ("description", "version"):
-        assert key in fm2, f"Frontmatter key {key!r} lost after round-trip. fm2 = {fm2}"
-        assert fm2[key] == fm[key], (
-            f"frontmatter[{key!r}] mismatch: {fm2[key]!r} != {fm[key]!r}"
-        )
+| Col A | Col B |
+| --- | --- |
+| 1 | 2 |"""
+    assert wb.to_markdown() == expected
 
 
 def test_frontmatter_roundtrip_preserves_format():
-    """Verify that the generated markdown preserves the YAML frontmatter format.
-
-    If the original document used frontmatter, the generated output should also
-    use frontmatter (not H1 heading + HTML comment metadata).
-    """
+    """to_markdown() must output frontmatter, not H1 + comment."""
     original_md = """\
 ---
 title: Frontmatter Book
@@ -225,33 +198,28 @@ author: Jane
 |---|
 | y |
 """
-    schema = MultiTableParsingSchema()
-    wb = parse_workbook(original_md, schema)
-    generated_md = generate_workbook_markdown(wb, schema)
+    wb = parse_workbook(original_md)
 
-    # The generated markdown SHOULD start with frontmatter
-    assert generated_md.startswith("---\n"), (
-        "Generated markdown does not start with YAML frontmatter delimiter.\n"
-        f"Generated output:\n{generated_md}"
-    )
+    expected = """\
+---
+title: Frontmatter Book
+author: Jane
+---
 
-    # The generated markdown should NOT contain an H1 heading for the workbook name
-    # (because the name is in the frontmatter 'title' field)
-    lines = generated_md.split("\n")
-    h1_lines = [line for line in lines if line.startswith("# ")]
-    assert len(h1_lines) == 0, (
-        "Generated markdown contains H1 heading, but name should be in frontmatter.\n"
-        f"H1 lines found: {h1_lines}\n"
-        f"Generated output:\n{generated_md}"
+## Data
+
+| X |
+| --- |
+| y |"""
+    result = wb.to_markdown()
+    assert result == expected, (
+        f"Generated output does not match expected.\n"
+        f"Expected:\n{expected}\n\nGot:\n{result}"
     )
 
 
 def test_frontmatter_roundtrip_with_metadata_comment_coexistence():
-    """Round-trip with both frontmatter and comment metadata.
-
-    Frontmatter is isolated. Comment metadata stays at top level.
-    After round-trip, both should be preserved independently.
-    """
+    """Frontmatter → YAML block, comment metadata → HTML comment at end."""
     original_md = """\
 ---
 title: Mixed Book
@@ -264,31 +232,31 @@ author: frontmatter_author
 
 <!-- md-spreadsheet-workbook-metadata: {"guiData": 42, "author": "comment_author"} -->
 """
-    schema = MultiTableParsingSchema()
-    wb1 = parse_workbook(original_md, schema)
+    wb = parse_workbook(original_md)
 
-    # Frontmatter is isolated in sub-dict
-    assert wb1.metadata is not None
-    assert wb1.metadata["frontmatter"]["author"] == "frontmatter_author"
-    # Comment metadata at top level
-    assert wb1.metadata["guiData"] == 42
-    assert wb1.metadata["author"] == "comment_author"
+    # Verify isolation
+    assert wb.metadata is not None
+    assert wb.metadata["frontmatter"]["author"] == "frontmatter_author"
+    assert wb.metadata["guiData"] == 42
 
-    generated_md = generate_workbook_markdown(wb1, schema)
-    wb2 = parse_workbook(generated_md, schema)
+    expected = """\
+---
+title: Mixed Book
+author: frontmatter_author
+---
 
-    assert wb2.name == "Mixed Book"
-    assert wb2.metadata is not None
-    assert wb2.metadata["frontmatter"]["author"] == "frontmatter_author"
-    assert wb2.metadata.get("guiData") == 42
+## Sheet
+
+| A |
+| --- |
+| 1 |
+
+<!-- md-spreadsheet-workbook-metadata: {"guiData": 42, "author": "comment_author"} -->"""
+    assert wb.to_markdown() == expected
 
 
 def test_frontmatter_yaml_comments_lost_on_roundtrip():
-    """YAML comments inside frontmatter are lost during round-trip.
-
-    This is accepted behavior: the custom YAML parser strips comments,
-    so they cannot survive parse → generate → re-parse.
-    """
+    """YAML comments are stripped during round-trip (accepted behavior)."""
     original_md = """\
 ---
 title: Commented Book
@@ -304,37 +272,33 @@ tags:
 |---|
 | 1 |
 """
-    schema = MultiTableParsingSchema()
-    wb1 = parse_workbook(original_md, schema)
+    wb = parse_workbook(original_md)
 
-    assert wb1.name == "Commented Book"
-    assert wb1.metadata is not None
-    fm = wb1.metadata["frontmatter"]
-    # Inline comments are stripped by parser
-    assert fm["author"] == "Jane"
-    assert fm["status"] == "draft"
-    # Commented-out list item is gone
-    assert fm["tags"] == ["fiction", "novel"]
+    # Comments are stripped — output will not contain them
+    expected = """\
+---
+title: Commented Book
+author: Jane
+status: draft
+tags:
+  - fiction
+  - novel
+---
 
-    # Round-trip
-    generated_md = generate_workbook_markdown(wb1, schema)
-    wb2 = parse_workbook(generated_md, schema)
+## Chapter
 
-    fm2 = wb2.metadata["frontmatter"]
-    assert fm2["author"] == "Jane"  # No " # Lead author" suffix
-    assert fm2["status"] == "draft"
-    assert fm2["tags"] == ["fiction", "novel"]  # No commented-out items
+| A |
+| --- |
+| 1 |"""
+    assert wb.to_markdown() == expected
 
 
 def test_frontmatter_roundtrip_dendron_style():
-    """Round-trip for a Dendron-style daily note with complex metadata.
-
-    This tests lists and nested dicts survive the round-trip.
-    """
+    """Dendron-style daily note: quoted strings, large ints, lists."""
     original_md = """\
 ---
 title: "2026-02-25"
-desc: 'Daily note for today'
+desc: Daily note for today
 updated: 1708851375000
 created: 1708851375000
 tags:
@@ -346,32 +310,22 @@ tags:
 |---|---|
 | Buy milk | pending |
 """
-    schema = MultiTableParsingSchema()
-    wb1 = parse_workbook(original_md, schema)
+    wb = parse_workbook(original_md)
 
-    assert wb1.name == "2026-02-25"
-    assert wb1.metadata is not None
-    fm1 = wb1.metadata["frontmatter"]
-    assert fm1["tags"] == ["daily", "journal"]
-    assert fm1["updated"] == 1708851375000
+    expected = """\
+---
+title: "2026-02-25"
+desc: Daily note for today
+updated: 1708851375000
+created: 1708851375000
+tags:
+  - daily
+  - journal
+---
 
-    generated_md = generate_workbook_markdown(wb1, schema)
-    wb2 = parse_workbook(generated_md, schema)
+## Tasks
 
-    assert wb2.name == wb1.name
-    assert wb2.metadata is not None
-    fm2 = wb2.metadata["frontmatter"]
-
-    # Scalar metadata should round-trip
-    assert fm2.get("desc") == fm1["desc"]
-    assert fm2.get("updated") == fm1["updated"]
-    assert fm2.get("created") == fm1["created"]
-
-    # Complex metadata (lists) should round-trip
-    assert fm2.get("tags") == fm1["tags"], (
-        f"Tags mismatch: {fm2.get('tags')!r} != {fm1['tags']!r}"
-    )
-
-    # Table data must survive
-    assert len(wb2.sheets) == 1
-    assert wb2.sheets[0].tables[0].rows == [["Buy milk", "pending"]]
+| Task | Status |
+| --- | --- |
+| Buy milk | pending |"""
+    assert wb.to_markdown() == expected

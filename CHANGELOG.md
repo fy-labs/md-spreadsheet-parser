@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0] - 2026-02-27
+
+### 🚀 New Features
+
+Supports YAML Frontmatter block parsing and Multi-H1 routing.
+Additionally, introduces GFM Task List items (`[ ]` / `[x]`) to boolean conversion mapping in `ConversionSchema`.
+
 ## [1.3.1] - 2026-02-23
 
 ### 🐛 Bug Fixes

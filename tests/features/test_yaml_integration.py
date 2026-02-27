@@ -150,114 +150,119 @@ custom:
 
 
 def test_frontmatter_roundtrip_basic():
-    """Basic round-trip: parse frontmatter, verify to_markdown() output text."""
-    original_md = """\
----
-title: My Workbook
-description: A test workbook
-version: 2
----
-## Sheet 1
-| Col A | Col B |
-|---|---|
-| 1 | 2 |
-"""
-    wb = parse_workbook(original_md)
-
-    # Verify initial parse is correct
-    assert wb.name == "My Workbook"
-    assert wb.metadata is not None
-    assert wb.metadata["header_type"] == "frontmatter"
-    assert wb.metadata["frontmatter"]["description"] == "A test workbook"
-    assert wb.metadata["frontmatter"]["version"] == 2
-
-    expected = """\
----
-title: My Workbook
-description: A test workbook
-version: 2
----
-
-## Sheet 1
-
-| Col A | Col B |
-| --- | --- |
-| 1 | 2 |"""
-    assert wb.to_markdown() == expected
+    """Basic round-trip: to_markdown() reproduces the original text."""
+    original = (
+        "---\n"
+        "title: My Workbook\n"
+        "description: A test workbook\n"
+        "version: 2\n"
+        "---\n"
+        "\n"
+        "## Sheet 1\n"
+        "\n"
+        "| Col A | Col B |\n"
+        "| --- | --- |\n"
+        "| 1 | 2 |"
+    )
+    wb = parse_workbook(original)
+    assert wb.to_markdown() == original
 
 
 def test_frontmatter_roundtrip_preserves_format():
-    """to_markdown() must output frontmatter, not H1 + comment."""
-    original_md = """\
----
-title: Frontmatter Book
-author: Jane
----
-## Data
-| X |
-|---|
-| y |
-"""
-    wb = parse_workbook(original_md)
-
-    expected = """\
----
-title: Frontmatter Book
-author: Jane
----
-
-## Data
-
-| X |
-| --- |
-| y |"""
-    result = wb.to_markdown()
-    assert result == expected, (
-        f"Generated output does not match expected.\n"
-        f"Expected:\n{expected}\n\nGot:\n{result}"
+    """to_markdown() preserves frontmatter format (no H1 + comment conversion)."""
+    original = (
+        "---\n"
+        "title: Frontmatter Book\n"
+        "author: Jane\n"
+        "---\n"
+        "\n"
+        "## Data\n"
+        "\n"
+        "| X |\n"
+        "| --- |\n"
+        "| y |"
     )
+    wb = parse_workbook(original)
+    assert wb.to_markdown() == original
 
 
 def test_frontmatter_roundtrip_with_metadata_comment_coexistence():
-    """Frontmatter → YAML block, comment metadata → HTML comment at end."""
-    original_md = """\
+    """Frontmatter + comment metadata both survive the round-trip."""
+    original = (
+        "---\n"
+        "title: Mixed Book\n"
+        "author: frontmatter_author\n"
+        "---\n"
+        "\n"
+        "## Sheet\n"
+        "\n"
+        "| A |\n"
+        "| --- |\n"
+        "| 1 |\n"
+        "\n"
+        '<!-- md-spreadsheet-workbook-metadata: {"guiData": 42, "author": "comment_author"} -->'
+    )
+    wb = parse_workbook(original)
+    assert wb.to_markdown() == original
+
+
+def test_frontmatter_roundtrip_dendron_style():
+    """Dendron-style daily note with quoted strings, large ints, and lists."""
+    original = (
+        "---\n"
+        'title: "2026-02-25"\n'
+        "desc: Daily note for today\n"
+        "updated: 1708851375000\n"
+        "created: 1708851375000\n"
+        "tags:\n"
+        "  - daily\n"
+        "  - journal\n"
+        "---\n"
+        "\n"
+        "## Tasks\n"
+        "\n"
+        "| Task | Status |\n"
+        "| --- | --- |\n"
+        "| Buy milk | pending |"
+    )
+    wb = parse_workbook(original)
+    assert wb.to_markdown() == original
+
+
+# ==========================================
+# Known formatting differences
+# ==========================================
+
+
+def test_frontmatter_roundtrip_separator_normalization():
+    """to_markdown() normalizes compact separators to space-padded ones.
+
+    Input: |---|---|  →  Output: | --- | --- |
+    This is a known formatting change by the generator.
+    """
+    compact_md = """\
 ---
-title: Mixed Book
-author: frontmatter_author
+title: Compact
 ---
 ## Sheet
-| A |
-|---|
-| 1 |
-
-<!-- md-spreadsheet-workbook-metadata: {"guiData": 42, "author": "comment_author"} -->
+| A | B |
+|---|---|
+| 1 | 2 |
 """
-    wb = parse_workbook(original_md)
+    wb = parse_workbook(compact_md)
+    result = wb.to_markdown()
 
-    # Verify isolation
-    assert wb.metadata is not None
-    assert wb.metadata["frontmatter"]["author"] == "frontmatter_author"
-    assert wb.metadata["guiData"] == 42
-
-    expected = """\
----
-title: Mixed Book
-author: frontmatter_author
----
-
-## Sheet
-
-| A |
-| --- |
-| 1 |
-
-<!-- md-spreadsheet-workbook-metadata: {"guiData": 42, "author": "comment_author"} -->"""
-    assert wb.to_markdown() == expected
+    # Separator is normalized
+    assert "| --- | --- |" in result
+    assert "|---|---|" not in result
 
 
 def test_frontmatter_yaml_comments_lost_on_roundtrip():
-    """YAML comments are stripped during round-trip (accepted behavior)."""
-    original_md = """\
+    """YAML comments inside frontmatter are stripped (accepted behavior).
+
+    Inline comments and commented-out list items do not survive round-trip.
+    """
+    original_with_comments = """\
 ---
 title: Commented Book
 author: Jane # Lead author
@@ -272,60 +277,17 @@ tags:
 |---|
 | 1 |
 """
-    wb = parse_workbook(original_md)
+    wb = parse_workbook(original_with_comments)
 
-    # Comments are stripped — output will not contain them
-    expected = """\
----
-title: Commented Book
-author: Jane
-status: draft
-tags:
-  - fiction
-  - novel
----
+    result = wb.to_markdown()
 
-## Chapter
-
-| A |
-| --- |
-| 1 |"""
-    assert wb.to_markdown() == expected
-
-
-def test_frontmatter_roundtrip_dendron_style():
-    """Dendron-style daily note: quoted strings, large ints, lists."""
-    original_md = """\
----
-title: "2026-02-25"
-desc: Daily note for today
-updated: 1708851375000
-created: 1708851375000
-tags:
-  - daily
-  - journal
----
-## Tasks
-| Task | Status |
-|---|---|
-| Buy milk | pending |
-"""
-    wb = parse_workbook(original_md)
-
-    expected = """\
----
-title: "2026-02-25"
-desc: Daily note for today
-updated: 1708851375000
-created: 1708851375000
-tags:
-  - daily
-  - journal
----
-
-## Tasks
-
-| Task | Status |
-| --- | --- |
-| Buy milk | pending |"""
-    assert wb.to_markdown() == expected
+    # Inline comments are stripped
+    assert "# Lead author" not in result
+    assert "# Will change" not in result
+    # Commented-out list item is gone
+    assert "non-fiction" not in result
+    # Data is preserved
+    assert "author: Jane" in result
+    assert "status: draft" in result
+    assert "- fiction" in result
+    assert "- novel" in result

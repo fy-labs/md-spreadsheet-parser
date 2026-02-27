@@ -104,6 +104,7 @@ class ConversionSchema:
         ("yes", "no"),
         ("1", "0"),
         ("on", "off"),
+        ("[x]", "[ ]"),
     )
     custom_converters: dict[type, Callable[[str], Any]] = field(default_factory=dict)
     field_converters: dict[str, Callable[[str], Any]] = field(default_factory=dict)

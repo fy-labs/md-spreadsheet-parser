@@ -39,39 +39,36 @@ author: john_doe
     assert len(workbook.sheets) == 1
 
 
-def test_frontmatter_with_title_and_multi_h1():
+def test_frontmatter_with_title_and_h1():
+    """When frontmatter has title AND an actual H1 exists,
+    the H1 becomes the workbook. Frontmatter title is a Document section
+    (handled by the editor, not the parser)."""
     md_content = """---
-title: Book 1
+title: My Daily Journal
+date: 2024-01-01
 ---
+
+Journal body content here.
+
+# Tables
+
 ## Sheet 1
-| A |
-|---|
-| 1 |
 
-# Book 2
-## Sheet 2
-| B |
-|---|
-| 2 |
+### Data
+
+| A | B |
+|---|---|
+| 1 | 2 |
 """
-    # parse_workbook should stop at the next H1
-    workbook1 = parse_workbook(md_content)
-    assert workbook1.name == "Book 1"
-    assert len(workbook1.sheets) == 1
-    assert workbook1.sheets[0].name == "Sheet 1"
-
-    # Prove that end_line is set correctly to stop before # Book 2
-    assert workbook1.end_line == 5
-
-    # Next workbook would be parsed correctly if we passed the remaining text
-    # The frontmatter takes 3 lines (indexes 0,1,2). The next text starts at index 3.
-    # index 5 in remaining text = 3 + 5 = index 8 in the original lines.
-    lines = md_content.split("\n")
-    remaining_text = "\n".join(lines[8:])
-    workbook2 = parse_workbook(remaining_text)
-    assert workbook2.name == "Book 2"
-    assert len(workbook2.sheets) == 1
-    assert workbook2.sheets[0].name == "Sheet 2"
+    workbook = parse_workbook(md_content)
+    # H1 "Tables" becomes the workbook via auto-detection
+    assert workbook.name == "Tables"
+    assert len(workbook.sheets) == 1
+    assert workbook.sheets[0].name == "Sheet 1"
+    # Frontmatter metadata should NOT be merged (frontmatter is a Document, not WB)
+    assert workbook.metadata is not None
+    assert workbook.metadata.get("header_type") is None
+    assert "frontmatter" not in workbook.metadata
 
 
 def test_legacy_metadata_comment_precedence():

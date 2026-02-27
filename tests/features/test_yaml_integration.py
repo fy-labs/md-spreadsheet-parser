@@ -279,15 +279,21 @@ tags:
 """
     wb = parse_workbook(original_with_comments)
 
-    result = wb.to_markdown()
-
-    # Inline comments are stripped
-    assert "# Lead author" not in result
-    assert "# Will change" not in result
-    # Commented-out list item is gone
-    assert "non-fiction" not in result
-    # Data is preserved
-    assert "author: Jane" in result
-    assert "status: draft" in result
-    assert "- fiction" in result
-    assert "- novel" in result
+    # Comments are stripped, separator is normalized
+    expected = (
+        "---\n"
+        "title: Commented Book\n"
+        "author: Jane\n"
+        "status: draft\n"
+        "tags:\n"
+        "  - fiction\n"
+        "  - novel\n"
+        "---\n"
+        "\n"
+        "## Chapter\n"
+        "\n"
+        "| A |\n"
+        "| --- |\n"
+        "| 1 |"
+    )
+    assert wb.to_markdown() == expected

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.2] - 2026-02-27
+
+### 🐛 Bug Fixes
+
+When YAML frontmatter has a `title` AND actual H1 headers exist in the document, the frontmatter is now treated as a Document section instead of the workbook root. The H1 header is used for workbook auto-detection as usual. Previously, frontmatter `title` unconditionally preempted H1 auto-detection, causing 0 sheets to be parsed when both coexisted.
+
 ## [1.4.1] - 2026-02-27
 
 ### 🐛 Bug Fixes

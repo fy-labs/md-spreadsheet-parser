@@ -81,11 +81,12 @@ def test_legacy_metadata_comment_precedence():
 title: Frontmatter Title
 author: overriding_author
 ---
-<!-- md-spreadsheet-workbook-metadata: {"title": "Comment Title", "author": "original", "guiData": 123} -->
 ## Sheet
 | A |
 |---|
 | 1 |
+
+<!-- md-spreadsheet-workbook-metadata: {"title": "Comment Title", "author": "original", "guiData": 123} -->
 """
     workbook = parse_workbook(md)
     # Frontmatter title becomes the workbook name
@@ -256,11 +257,12 @@ def test_frontmatter_roundtrip_with_metadata_comment_coexistence():
 title: Mixed Book
 author: frontmatter_author
 ---
-<!-- md-spreadsheet-workbook-metadata: {"guiData": 42, "author": "comment_author"} -->
 ## Sheet
 | A |
 |---|
 | 1 |
+
+<!-- md-spreadsheet-workbook-metadata: {"guiData": 42, "author": "comment_author"} -->
 """
     schema = MultiTableParsingSchema()
     wb1 = parse_workbook(original_md, schema)
@@ -279,6 +281,49 @@ author: frontmatter_author
     assert wb2.metadata is not None
     assert wb2.metadata["frontmatter"]["author"] == "frontmatter_author"
     assert wb2.metadata.get("guiData") == 42
+
+
+def test_frontmatter_yaml_comments_lost_on_roundtrip():
+    """YAML comments inside frontmatter are lost during round-trip.
+
+    This is accepted behavior: the custom YAML parser strips comments,
+    so they cannot survive parse → generate → re-parse.
+    """
+    original_md = """\
+---
+title: Commented Book
+author: Jane # Lead author
+status: draft # Will change to published
+tags:
+  - fiction
+  # - non-fiction  (commented out)
+  - novel
+---
+## Chapter
+| A |
+|---|
+| 1 |
+"""
+    schema = MultiTableParsingSchema()
+    wb1 = parse_workbook(original_md, schema)
+
+    assert wb1.name == "Commented Book"
+    assert wb1.metadata is not None
+    fm = wb1.metadata["frontmatter"]
+    # Inline comments are stripped by parser
+    assert fm["author"] == "Jane"
+    assert fm["status"] == "draft"
+    # Commented-out list item is gone
+    assert fm["tags"] == ["fiction", "novel"]
+
+    # Round-trip
+    generated_md = generate_workbook_markdown(wb1, schema)
+    wb2 = parse_workbook(generated_md, schema)
+
+    fm2 = wb2.metadata["frontmatter"]
+    assert fm2["author"] == "Jane"  # No " # Lead author" suffix
+    assert fm2["status"] == "draft"
+    assert fm2["tags"] == ["fiction", "novel"]  # No commented-out items
 
 
 def test_frontmatter_roundtrip_dendron_style():

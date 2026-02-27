@@ -472,6 +472,22 @@ def parse_sheet(
         )
 
 
+def _has_h1_headers(lines: list[str]) -> bool:
+    """Check if any H1 headers exist in the given lines (outside code blocks)."""
+    in_code_block = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_code_block = not in_code_block
+        elif (
+            not in_code_block
+            and stripped.startswith("# ")
+            and not stripped.startswith("## ")
+        ):
+            return True
+    return False
+
+
 def parse_workbook(
     markdown: str, schema: MultiTableParsingSchema = MultiTableParsingSchema()
 ) -> Workbook:
@@ -523,13 +539,6 @@ def parse_workbook(
 
     lines = filtered_lines
 
-    # Isolate frontmatter in sub-dict for round-trip fidelity
-    if frontmatter_metadata:
-        if metadata is None:
-            metadata = {}
-        metadata["header_type"] = "frontmatter"
-        metadata["frontmatter"] = frontmatter_metadata
-
     # Determine root marker and header levels
     root_marker = schema.root_marker
     workbook_name = "Workbook"
@@ -538,11 +547,22 @@ def parse_workbook(
     virtual_root = False
     if root_marker is None and "title" in frontmatter_metadata:
         title_val = str(frontmatter_metadata["title"]).strip()
-        if title_val:
+        if title_val and not _has_h1_headers(lines):
+            # No actual H1 headers → frontmatter title is the workbook root
             root_marker = "# " + title_val
             workbook_name = title_val
             workbook_level = 1
             virtual_root = True
+        # else: H1 exists → frontmatter is a Document section,
+        # let normal auto-detection (below) handle workbook selection
+
+    # Isolate frontmatter in sub-dict for round-trip fidelity
+    # Only when frontmatter IS the workbook root (virtual_root)
+    if virtual_root and frontmatter_metadata:
+        if metadata is None:
+            metadata = {}
+        metadata["header_type"] = "frontmatter"
+        metadata["frontmatter"] = frontmatter_metadata
 
     if root_marker is None:
         # Auto-detection mode

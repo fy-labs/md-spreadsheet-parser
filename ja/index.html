@@ -1,0 +1,1864 @@
+
+<!doctype html>
+<html lang="ja" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A lightweight, pure Python library for parsing Markdown tables.">
+      
+      
+      
+        <link rel="canonical" href="https://f-y.github.io/md-spreadsheet-parser/ja/">
+      
+      
+      
+        <link rel="next" href="COOKBOOK/">
+      
+      
+        
+          <link rel="alternate" href="../" hreflang="en">
+        
+          <link rel="alternate" href="./" hreflang="ja">
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+    
+    
+      
+        <title>Home - Markdown Spreadsheet Parser</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#markdown-spreadsheet-parser" class="md-skip">
+          コンテンツにスキップ
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="ヘッダー">
+    <a href="./" title="Markdown Spreadsheet Parser" class="md-header__button md-logo" aria-label="Markdown Spreadsheet Parser" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Markdown Spreadsheet Parser
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="言語切り替え">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17.9 17.39c-.26-.8-1.01-1.39-1.9-1.39h-1v-3a1 1 0 0 0-1-1H8v-2h2a1 1 0 0 0 1-1V7h2a2 2 0 0 0 2-2v-.41a7.984 7.984 0 0 1 2.9 12.8M11 19.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.22.21-1.79L9 15v1a2 2 0 0 0 2 2m1-16A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="ja" class="md-select__link">
+              日本語
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="検索" placeholder="検索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="検索">
+        
+        <button type="reset" class="md-search__icon md-icon" title="クリア" aria-label="クリア" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            検索を初期化
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/f-y/md-spreadsheet-parser" title="リポジトリへ" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    f-y/md-spreadsheet-parser
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="ナビゲーション" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./" title="Markdown Spreadsheet Parser" class="md-nav__button md-logo" aria-label="Markdown Spreadsheet Parser" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Markdown Spreadsheet Parser
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/f-y/md-spreadsheet-parser" title="リポジトリへ" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    f-y/md-spreadsheet-parser
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目次">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目次
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        目次
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        機能
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        インストール
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        使い方
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="使い方">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 基本的な解析
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YAMLフロントマターとメタデータ
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gfm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GFM機能のサポート
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 型安全な検証 (推奨)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydantic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pydantic連携
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. JSONと辞書への変換
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-pandas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Pandas連携とエクスポート
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-excel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Excelインポート
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-markdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Markdown生成 (ラウンドトリップ)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 高度な機能
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 高度な型変換
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 堅牢性 (不正なテーブルの処理)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. セル内改行のサポート
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#11-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. パフォーマンスとスケーラビリティ (ストリーミングAPI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. プログラムによる操作
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. ビジュアルメタデータの永続化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        コマンドラインインターフェース (CLI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        設定 (Configuration)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ecosystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        エコシステム (Ecosystem)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ライセンス
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="COOKBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cookbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目次">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目次
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        目次
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        機能
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        インストール
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        使い方
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="使い方">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 基本的な解析
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YAMLフロントマターとメタデータ
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gfm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GFM機能のサポート
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 型安全な検証 (推奨)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydantic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pydantic連携
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. JSONと辞書への変換
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-pandas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Pandas連携とエクスポート
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-excel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Excelインポート
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-markdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Markdown生成 (ラウンドトリップ)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 高度な機能
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 高度な型変換
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 堅牢性 (不正なテーブルの処理)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. セル内改行のサポート
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#11-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. パフォーマンスとスケーラビリティ (ストリーミングAPI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. プログラムによる操作
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. ビジュアルメタデータの永続化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        コマンドラインインターフェース (CLI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        設定 (Configuration)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ecosystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        エコシステム (Ecosystem)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ライセンス
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="markdown-spreadsheet-parser">Markdown Spreadsheet Parser</h1>
+<p align="center">
+  <a href="https://github.com/f-y/md-spreadsheet-parser/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" />
+  </a>
+  <a href="https://pypi.org/project/md-spreadsheet-parser/">
+    <img src="https://img.shields.io/pypi/v/md-spreadsheet-parser.svg" alt="PyPI" />
+  </a>
+  <a href="https://pepy.tech/projects/md-spreadsheet-parser"><img src="https://static.pepy.tech/personalized-badge/md-spreadsheet-parser?period=total&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads" alt="PyPI Downloads"></a>
+  <a href="https://www.npmjs.com/package/md-spreadsheet-parser">
+    <img src="https://img.shields.io/npm/v/md-spreadsheet-parser.svg" alt="npm" />
+  </a>
+  <a href="https://github.com/f-y/md-spreadsheet-parser">
+    <img src="https://img.shields.io/badge/repository-github-blue.svg" alt="Repository" />
+  </a>
+  <a href="https://github.com/f-y/md-spreadsheet-parser/actions?query=workflow%3ATests">
+    <img src="https://github.com/f-y/md-spreadsheet-parser/workflows/Tests/badge.svg" alt="Build Status" />
+  </a>
+</p>
+
+<p align="center">
+  <strong>Markdownテーブル操作に特化したPythonライブラリ。ExcelからMarkdownへの変換、テーブルの解析、型安全な検証など。堅牢で依存関係ゼロ</strong>
+</p>
+
+<hr />
+<p><strong>md-spreadsheet-parser</strong> は、Markdownのテーブルを単なるテキストからファーストクラスのデータ構造へと昇華させます。スプレッドシートの手軽さとPythonの強力さを兼ね備え、正確かつ依存関係ゼロのエンジンでテーブルの解析、検証、操作を実現します。</p>
+<blockquote>
+<p><strong>🎉 公式GUIエディタが登場: <a href="https://marketplace.visualstudio.com/items?itemName=f-y.peng-sheets">PengSheets</a></strong></p>
+<p>このライブラリのパワーをそのままに、VS Code上でExcelライクな操作感を実現しました。ソート、フィルタ、快適なナビゲーションなどをGUIで直感的に扱えます。</p>
+<p><a href="https://marketplace.visualstudio.com/items?itemName=f-y.peng-sheets"><img alt="Get it on VS Code Marketplace" src="https://img.shields.io/badge/VS%20Code%20Marketplace-%E3%81%A7%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89-007ACC?style=for-the-badge&amp;logo=visual-studio-code&amp;logoColor=white" /></a></p>
+</blockquote>
+<p>🚀 <strong>すぐに使いたいですか？</strong> <a href="https://github.com/f-y/md-spreadsheet-parser/blob/main/COOKBOOK.ja.md">Cookbook</a> には、コピー＆ペーストで使えるレシピ（Excel変換、Pandas連携、Markdownテーブル操作など）が満載です。</p>
+<h2 id="_1">目次</h2>
+<ul>
+<li><a href="#機能">機能</a></li>
+<li><a href="#インストール">インストール</a></li>
+<li><a href="#使い方">使い方</a><ul>
+<li><a href="#1-基本的な解析">1. 基本的な解析</a></li>
+<li><a href="#yamlフロントマターとメタデータ">YAMLフロントマターとメタデータ</a></li>
+<li><a href="#gfm機能のサポート">GFM機能のサポート</a></li>
+<li><a href="#2-型安全な検証-推奨">2. 型安全な検証</a><ul>
+<li><a href="#pydantic連携">Pydantic連携</a></li>
+</ul>
+</li>
+<li><a href="#3-jsonと辞書への変換">3. JSONと辞書への変換</a></li>
+<li><a href="#4-pandas連携とエクスポート">4. Pandas連携とエクスポート</a></li>
+<li><a href="#5-excelインポート">5. Excelインポート</a></li>
+<li><a href="#6-markdown生成-ラウンドトリップ">6. Markdown生成</a></li>
+<li><a href="#7-高度な機能">7. 高度な機能</a></li>
+<li><a href="#8-高度な型変換">8. 高度な型変換</a></li>
+<li><a href="#9-堅牢性-不正なテーブルの処理">9. 堅牢性</a></li>
+<li><a href="#10-セル内改行のサポート">10. セル内改行のサポート</a></li>
+<li><a href="#11-パフォーマンスとスケーラビリティ-ストリーミングapi">11. パフォーマンスとスケーラビリティ</a></li>
+<li><a href="#12-プログラムによる操作">12. プログラムによる操作</a></li>
+<li><a href="#13-ビジュアルメタデータの永続化">13. ビジュアルメタデータの永続化</a></li>
+<li><a href="#コマンドラインインターフェース-cli">コマンドラインインターフェース (CLI)</a></li>
+</ul>
+</li>
+<li><a href="#設定">設定</a></li>
+<li><a href="#エコシステム-ecosystem">エコシステム</a></li>
+<li><a href="#ライセンス">ライセンス</a></li>
+</ul>
+<h2 id="_2">機能</h2>
+<ul>
+<li><strong>純粋なPythonと依存関係ゼロ</strong>: 軽量でポータブルです。<strong>AWS Lambda Layers</strong> や制約のある環境に最適です。<strong>WebAssembly (Pyodide)</strong> を含む、Pythonが動作する場所ならどこでも動作します。</li>
+<li><strong>型安全な検証</strong>: ルーズなMarkdownテーブルを、自動型変換を含む強力に型付けされたPythonの <code>dataclasses</code> に変換します。カスタマイズ可能なブール値ロジック (I18N) やカスタム型コンバータもサポートします。</li>
+<li><strong>データベースとしてのMarkdown</strong>: MarkdownファイルをGit管理された設定やマスターデータとして扱えます。スキーマと型を自動的に検証し、手書きテーブルの人為的ミスを防ぎます。</li>
+<li><strong>ラウンドトリップサポート</strong>: オブジェクトへの解析、データの変更、Markdownへの再生成が可能です。エディタの実装に最適です。</li>
+<li><strong>GFM準拠</strong>: 列の配置 (<code>:--</code>, <code>:--:</code>, <code>--:</code>) やインラインコード内のパイプ (<code>`|`</code>) の正しい処理など、GitHub Flavored Markdown (GFM) 仕様をサポートしています。</li>
+<li><strong>堅牢な解析</strong>: 不正なテーブル（列の欠落や過剰）やエスケープ文字を適切に処理します。</li>
+<li><strong>マルチテーブル・ワークブック</strong>: 単一ファイルからの複数のシートやテーブルの解析、およびメタデータをサポートします。</li>
+<li><strong>JSONとDictのサポート</strong>: 列レベルのJSON解析と、<code>dict</code>/<code>TypedDict</code> への直接変換をサポートします。</li>
+<li><strong>Pandas連携</strong>: MarkdownテーブルからDataFrameをシームレスに作成できます。</li>
+<li><strong>Excelインポートとデータクリーニング</strong>: Excel/TSV/CSVをMarkdownに変換し、結合セルをインテリジェントに処理します。階層ヘッダーのフラット化やギャップの埋め合わせを自動的に行い、「汚い」スプレッドシートをきれいな構造化データに変換します。</li>
+<li><strong>JSONフレンドリー</strong>: 辞書/JSONへのエクスポートが容易で、他のツールとの連携も簡単です。</li>
+</ul>
+<h2 id="_3">インストール</h2>
+<pre><code class="language-bash">pip install md-spreadsheet-parser
+</code></pre>
+<h2 id="_4">使い方</h2>
+<h3 id="1">1. 基本的な解析</h3>
+<p><strong>単一のテーブル</strong>
+標準的なMarkdownテーブルを構造化オブジェクトに解析します。</p>
+<pre><code class="language-python">from md_spreadsheet_parser import parse_table
+
+markdown = &quot;&quot;&quot;
+| Name | Age |
+| --- | --- |
+| Alice | 30 |
+| Bob | 25 |
+&quot;&quot;&quot;
+
+result = parse_table(markdown)
+
+print(result.headers)
+# ['Name', 'Age']
+
+print(result.rows)
+# [['Alice', '30'], ['Bob', '25']]
+</code></pre>
+<p><strong>複数のテーブル (ワークブック)</strong>
+複数のシート（セクション）を含むファイルを解析します。デフォルトでは、単一のH1ヘッダー (<code># Workbook</code>) などをルートとして自動検出し、シートのヘッダーレベルを自動計算します。</p>
+<pre><code class="language-python">from md_spreadsheet_parser import parse_workbook, MultiTableParsingSchema
+
+markdown = &quot;&quot;&quot;
+# Workbook
+
+## Users
+| ID | Name |
+| -- | ---- |
+| 1  | Alice|
+
+## Products
+| ID | Item |
+| -- | ---- |
+| A  | Apple|
+&quot;&quot;&quot;
+
+# デフォルトスキーマを使用
+schema = MultiTableParsingSchema()
+workbook = parse_workbook(markdown, schema)
+
+for sheet in workbook.sheets:
+    print(f&quot;Sheet: {sheet.name}&quot;)
+    for table in sheet.tables:
+        print(table.rows)
+</code></pre>
+<p><strong>ルックアップAPIとメタデータ</strong>
+シートやテーブルを名前で直接取得し、説明などの解析されたメタデータにアクセスできます。</p>
+<pre><code class="language-python">from md_spreadsheet_parser import parse_workbook
+
+markdown = &quot;&quot;&quot;
+# Workbook
+
+## Sales Data
+
+### Q1 Results
+Financial performance for the first quarter.
+
+| Year | Revenue |
+| ---- | ------- |
+| 2023 | 1000    |
+&quot;&quot;&quot;
+
+workbook = parse_workbook(markdown)
+
+# 名前でアクセス
+sheet = workbook.get_sheet(&quot;Sales Data&quot;)
+if sheet:
+    # 名前でテーブルを取得 (### Header から)
+    table = sheet.get_table(&quot;Q1 Results&quot;)
+
+    print(table.description)
+    # &quot;Financial performance for the first quarter.&quot;
+
+    print(table.rows)
+    # [['2023', '1000']]
+</code></pre>
+<p><strong>シンプルなスキャンインターフェース</strong>
+ドキュメントの構造（シートやヘッダー）を無視して、ファイル内の <em>すべての</em> テーブルを抽出したい場合は、<code>scan_tables</code> を使用します。</p>
+<pre><code class="language-python">from md_spreadsheet_parser import scan_tables
+
+markdown = &quot;&quot;&quot;
+| ID | Name |
+| -- | ---- |
+| 1  | Alice|
+
+... text ...
+
+| ID | Item |
+| -- | ---- |
+| A  | Apple|
+&quot;&quot;&quot;
+
+# 見つかったすべてのテーブルのフラットリストを返す
+tables = scan_tables(markdown)
+print(len(tables)) # 2
+</code></pre>
+<p><strong>ファイル読み込みヘルパー</strong></p>
+<p>利便性のため、<code>_from_file</code> バリアントを使用して、ファイルパス (<code>str</code> または <code>Path</code>) やファイルライクオブジェクトから直接解析できます：</p>
+<pre><code class="language-python">from md_spreadsheet_parser import parse_workbook_from_file
+
+# 簡単でクリーン
+workbook = parse_workbook_from_file(&quot;data.md&quot;)
+</code></pre>
+<p>利用可能なヘルパー:
+- <code>parse_table_from_file(path_or_file)</code>
+- <code>parse_workbook_from_file(path_or_file)</code>
+- <code>scan_tables_from_file(path_or_file)</code></p>
+<h3 id="yaml">YAMLフロントマターとメタデータ</h3>
+<p>ドキュメントの先頭からYAMLフロントマターを抽出することをサポートしています。
+フロントマターに <code>title</code> プロパティが含まれている場合、自動的にドキュメントのプライマリH1ヘッダー (<code>Workbook.name</code>) として扱われ、そのキーは <code>Workbook.metadata</code> に保存されます。<code>title</code> を含まないフロントマターは無視され、ワークブックとは見なされません。</p>
+<pre><code class="language-python">markdown = &quot;&quot;&quot;---
+title: My Project
+author: Alice
+---
+## Sheet 1
+| A |
+|---|
+| 1 |
+&quot;&quot;&quot;
+workbook = parse_workbook(markdown)
+print(workbook.name)          # &quot;My Project&quot;
+print(workbook.metadata)      # {&quot;title&quot;: &quot;My Project&quot;, &quot;author&quot;: &quot;Alice&quot;}
+</code></pre>
+<h3 id="gfm">GFM機能のサポート</h3>
+<p>パーサーは、テーブルに関するGitHub Flavored Markdown (GFM) 仕様に厳密に準拠しています。</p>
+<p><strong>列の配置</strong>
+区切り行の配置マーカーは解析され、保持されます。</p>
+<pre><code class="language-python">markdown = &quot;&quot;&quot;
+| Left | Center | Right |
+| :--- | :----: | ----: |
+| 1    | 2      | 3     |
+&quot;&quot;&quot;
+table = parse_table(markdown)
+print(table.alignments)
+# [&quot;left&quot;, &quot;center&quot;, &quot;right&quot;]
+</code></pre>
+<p><strong>コード内のパイプとエスケープ</strong>
+インラインコードブロック（バッククォート）内のパイプ <code>|</code> や、<code>\</code> でエスケープされたパイプは、列区切りではなくコンテンツとして正しく扱われます。</p>
+<pre><code class="language-python">markdown = &quot;&quot;&quot;
+| Code  | Escaped |
+| ----- | ------- |
+| `a|b` | \|      |
+&quot;&quot;&quot;
+table = parse_table(markdown)
+# table.rows[0] == [&quot;`a|b`&quot;, &quot;|&quot;]
+</code></pre>
+<h3 id="2">2. 型安全な検証 (推奨)</h3>
+<p>このライブラリの最も強力な機能は、<code>dataclasses</code> を使用して、ルーズなMarkdownテーブルを強く型付けされたPythonオブジェクトに変換することです。これにより、データの妥当性が保証され、扱いやすくなります。</p>
+<pre><code class="language-python">from dataclasses import dataclass
+from md_spreadsheet_parser import parse_table, TableValidationError
+
+@dataclass
+class User:
+    name: str
+    age: int
+    is_active: bool = True
+
+markdown = &quot;&quot;&quot;
+| Name | Age | Is Active |
+|---|---|---|
+| Alice | 30 | yes |
+| Bob | 25 | no |
+&quot;&quot;&quot;
+
+try:
+    # ワンステップで解析と検証
+    users = parse_table(markdown).to_models(User)
+
+    for user in users:
+        print(f&quot;{user.name} is {user.age} years old.&quot;)
+        # Alice is 30 years old.
+        # Bob is 25 years old.
+
+except TableValidationError as e:
+    print(e)
+</code></pre>
+<p><strong>機能:</strong>
+*   <strong>型変換</strong>: 文字列を標準的なルールで自動的に <code>int</code>, <code>float</code>, <code>bool</code> に変換します。
+*   <strong>ブール値の処理 (デフォルト)</strong>: 標準的なペア <code>true/false</code>, <code>yes/no</code>, <code>on/off</code>, <code>1/0</code>、およびネイティブのGFMタスクリスト <code>[x]/[ ]</code> を即座にサポートします。（カスタマイズについては <a href="#8-高度な型変換">高度な型変換</a> を参照）。
+*   <strong>オプションフィールド</strong>: 空文字列を <code>None</code> に変換することで <code>Optional[T]</code> を処理します。
+*   <strong>検証</strong>: データがスキーマに一致しない場合、詳細なエラーを発生させます。</p>
+<h3 id="pydantic">Pydantic連携</h3>
+<p>より高度な検証（メール形式、範囲、正規表現）を行うには、dataclassesの代わりに <a href="https://docs.pydantic.dev/">Pydantic</a> モデルを使用できます。<code>pydantic</code> がインストールされている場合、この機能は自動的に有効になります。</p>
+<pre><code class="language-python">from pydantic import BaseModel, Field, EmailStr
+
+class User(BaseModel):
+    name: str = Field(alias=&quot;User Name&quot;)
+    age: int = Field(gt=0)
+    email: EmailStr
+
+# 自動的にPydanticモデルを検出し、検証に使用します
+users = parse_table(markdown).to_models(User)
+</code></pre>
+<p>パーサーはPydanticの <code>alias</code> と <code>Field</code> 制約を尊重します。</p>
+<h3 id="3-json">3. JSONと辞書への変換</h3>
+<p>完全なDataclassやPydanticモデルを定義したくない場合や、JSON文字列を含む列がある場合の対応です。</p>
+<p><strong>シンプルな辞書出力</strong>
+テーブルを辞書のリストに直接変換します。キーはヘッダーから派生します。</p>
+<pre><code class="language-python"># list[dict[str, Any]] を返します (値は生の文字列です)
+rows = parse_table(markdown).to_models(dict)
+print(rows[0])
+# {'Name': 'Alice', 'Age': '30'}
+</code></pre>
+<p><strong>TypedDict サポート</strong>
+軽量な型安全性のために <code>TypedDict</code> を使用します。パーサーは型アノテーションを使用して値を自動的に変換します。</p>
+<pre><code class="language-python">from typing import TypedDict
+
+class User(TypedDict):
+    name: str
+    age: int
+    active: bool
+
+rows = parse_table(markdown).to_models(User)
+print(rows[0])
+# {'name': 'Alice', 'age': 30, 'active': True}
+</code></pre>
+<p><strong>列レベルのJSON解析</strong>
+フィールドが <code>dict</code> または <code>list</code> として型付けされている場合（DataclassまたはPydanticモデル内）、パーサーは <strong>セルの値を自動的にJSONとして解析</strong> します。</p>
+<pre><code class="language-python">@dataclass
+class Config:
+    id: int
+    metadata: dict  # セル: '{&quot;debug&quot;: true}' -&gt; dictに解析
+    tags: list      # セル: '[&quot;a&quot;, &quot;b&quot;]'      -&gt; listに解析
+
+# PydanticモデルもJson[]ラッパーなしで動作します
+class ConfigModel(BaseModel):
+    metadata: dict
+</code></pre>
+<p><strong>制限事項:</strong>
+*   <strong>JSON構文</strong>: セルの内容は有効なJSONである必要があります（例: ダブルクォート <code>{"a": 1}</code>）。不正なJSONは <code>ValueError</code> を発生させます。
+*   <strong>単純な辞書解析</strong>: <code>to_models(dict)</code> は、カスタムスキーマを使用しない限り、内部のJSON文字列を自動的には解析 <em>しません</em>。文字列の浅い辞書を作成するだけです。</p>
+<h3 id="4-pandas">4. Pandas連携とエクスポート</h3>
+<p>このライブラリは、Markdownと <strong>Pandas</strong> などのデータサイエンスツールの架け橋となるように設計されています。</p>
+<p><strong>DataFrameへの変換 (最も簡単な方法)</strong>
+DataFrameを作成する最もきれいな方法は、<code>to_models(dict)</code> を使用することです。これはPandasが直接取り込める辞書のリストを返します。</p>
+<pre><code class="language-python">import pandas as pd
+from md_spreadsheet_parser import parse_table
+
+markdown = &quot;&quot;&quot;
+| Date       | Sales | Region |
+|------------|-------|--------|
+| 2023-01-01 | 100   | US     |
+| 2023-01-02 | 150   | EU     |
+&quot;&quot;&quot;
+
+table = parse_table(markdown)
+
+# 1. 辞書のリストに変換
+data = table.to_models(dict)
+
+# 2. DataFrameの作成
+df = pd.DataFrame(data)
+
+# 3. 後処理: 型変換 (Pandasは通常、最初は文字列として推論します)
+df[&quot;Sales&quot;] = pd.to_numeric(df[&quot;Sales&quot;])
+df[&quot;Date&quot;] = pd.to_datetime(df[&quot;Date&quot;])
+
+print(df.dtypes)
+# Date      datetime64[ns]
+# Sales              int64
+# Region            object
+</code></pre>
+<p><strong>型安全なオブジェクトからの変換</strong>
+DataFrameを作成する <strong>前</strong> にデータを検証したい場合（例: 解析中に "Sales" が整数であることを保証する）は、<code>dataclass</code> を使用してからPandasに変換します。</p>
+<pre><code class="language-python">from dataclasses import dataclass, asdict
+
+@dataclass
+class SalesRecord:
+    date: str
+    amount: int
+    region: str
+
+# 1. 解析と検証 (無効な場合はTableValidationErrorが発生)
+records = parse_table(markdown).to_models(SalesRecord)
+
+# 2. asdict()を使用してDataFrameに変換
+df = pd.DataFrame([asdict(r) for r in records])
+
+# 'amount' 列は検証時に変換されているため、すでにint64です
+print(df[&quot;amount&quot;].dtype) # int64
+</code></pre>
+<p><strong>JSONエクスポート</strong>
+すべての結果オブジェクト (<code>Workbook</code>, <code>Sheet</code>, <code>Table</code>) には、シリアライズに適した辞書構造を返す <code>.json</code> プロパティがあります。</p>
+<pre><code class="language-python">import json
+
+# ワークブック構造全体をエクスポート
+print(json.dumps(workbook.json, indent=2))
+</code></pre>
+<h3 id="5-excel">5. Excelインポート</h3>
+<p>結合セルや階層ヘッダーをインテリジェントに処理して、Excelデータ（TSV/CSVまたは <code>openpyxl</code> 経由）をインポートします。</p>
+<blockquote>
+<p>[!NOTE]
+TSV/CSVテキストからのインポートは <strong>依存関係ゼロ</strong> で動作します。<code>.xlsx</code> ファイルの直接読み込みには <code>openpyxl</code>（ユーザー管理のオプション依存関係）が必要です。</p>
+</blockquote>
+<p><strong>基本的な使い方</strong></p>
+<p>🚀 <strong>より包括的なレシピについては <a href="https://github.com/f-y/md-spreadsheet-parser/blob/main/COOKBOOK.ja.md">Cookbook</a> をご覧ください。</strong></p>
+<pre><code class="language-python">from md_spreadsheet_parser import parse_excel
+
+# TSV/CSVから (依存関係ゼロ)
+table = parse_excel(&quot;Name\tAge\nAlice\t30&quot;)
+
+# .xlsxから (openpyxlが必要)
+import openpyxl
+wb = openpyxl.load_workbook(&quot;data.xlsx&quot;)
+table = parse_excel(wb.active)
+</code></pre>
+<p><strong>結合ヘッダーの処理</strong></p>
+<p>Excelが結合セルをエクスポートすると、それらは空のセルとして表示されます。パーサーはこれらのギャップを自動的に前方埋めします：</p>
+<pre><code class="language-text">Excel (結合ヘッダー):
+┌─────────────────────────────┬────────┐
+│      Category (3 cols)      │  Info  │
+├─────────┬─────────┬─────────┼────────┤
+│    A    │    B    │    C    │   D    │
+└─────────┴─────────┴─────────┴────────┘
+
+          ↓ parse_excel()
+
+Markdown:
+| Category | Category | Category | Info |
+|----------|----------|----------|------|
+| A        | B        | C        | D    |
+</code></pre>
+<p><strong>2行階層ヘッダー</strong></p>
+<p>親子関係のある複雑なヘッダーには、<code>ExcelParsingSchema(header_rows=2)</code> を使用します：</p>
+<pre><code class="language-text">Excel (2行ヘッダー):
+┌───────────────────┬───────────────────┐
+│       Info        │      Metrics      │  ← Row 1 (Parent)
+├─────────┬─────────┼─────────┬─────────┤
+│  Name   │   ID    │  Score  │  Rank   │  ← Row 2 (Child)
+├─────────┼─────────┼─────────┼─────────┤
+│  Alice  │   001   │   95    │    1    │
+└─────────┴─────────┴─────────┴─────────┘
+
+          ↓ parse_excel(schema=ExcelParsingSchema(header_rows=2))
+
+Markdown:
+| Info - Name | Info - ID | Metrics - Score | Metrics - Rank |
+|-------------|-----------|-----------------|----------------|
+| Alice       | 001       | 95              | 1              |
+</code></pre>
+<blockquote>
+<p><strong>注:</strong> 現在、最大2行のヘッダー行をサポートしています。より深い階層の場合は、解析前にデータを前処理してください。</p>
+</blockquote>
+<p><strong>Excelから構造化オブジェクトへ（「キラー」機能）</strong></p>
+<p>単にテキストに変換するだけでなく、Excelをワンステップで有効で型安全なPythonオブジェクトに直接変換します。</p>
+<pre><code class="language-python">@dataclass
+class SalesRecord:
+    category: str
+    item: str
+    amount: int  # 文字列からintへの自動変換
+
+# 1. Excelを解析 (結合セルを自動的に処理)
+# 2. 検証とオブジェクトへの変換
+records = parse_excel(ws).to_models(SalesRecord)
+
+# これできれいな型付きデータが得られます
+assert records[0].amount == 1000
+</code></pre>
+<p><strong>設定</strong></p>
+<p>解析動作をカスタマイズするには <code>ExcelParsingSchema</code> を使用します：</p>
+<pre><code class="language-python">from md_spreadsheet_parser import parse_excel, ExcelParsingSchema
+
+schema = ExcelParsingSchema(
+    header_rows=2,
+    fill_merged_headers=True,
+    header_separator=&quot; / &quot;
+)
+
+table = parse_excel(source, schema)
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>オプション</th>
+<th>デフォルト</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>header_rows</code></td>
+<td><code>1</code></td>
+<td>ヘッダー行の数 (1 or 2)。</td>
+</tr>
+<tr>
+<td><code>fill_merged_headers</code></td>
+<td><code>True</code></td>
+<td>空のヘッダーセルを前方埋めします。</td>
+</tr>
+<tr>
+<td><code>header_separator</code></td>
+<td><code>" - "</code></td>
+<td>フラット化された2行ヘッダーの区切り文字。</td>
+</tr>
+<tr>
+<td><code>delimiter</code></td>
+<td><code>"\t"</code></td>
+<td>TSV/CSVの列区切り文字。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="6-markdown">6. Markdown生成 (ラウンドトリップ)</h3>
+<p>解析されたオブジェクトを変更し、<code>to_markdown()</code> を使用してMarkdown文字列に戻すことができます。これにより、完全な「解析 -&gt; 変更 -&gt; 生成」のワークフローが可能になります。</p>
+<pre><code class="language-python">from md_spreadsheet_parser import parse_table, ParsingSchema
+
+markdown = &quot;| A | B |\n|---|---| \n| 1 | 2 |&quot;
+table = parse_table(markdown)
+
+# データの変更
+table.rows.append([&quot;3&quot;, &quot;4&quot;])
+
+# Markdownの生成
+# スキーマを使用して出力形式をカスタマイズできます
+schema = ParsingSchema(require_outer_pipes=True)
+print(table.to_markdown(schema))
+# | A | B |
+# | --- | --- |
+# | 1 | 2 |
+# | 3 | 4 |
+</code></pre>
+<h3 id="7">7. 高度な機能</h3>
+<p><strong>メタデータ抽出の設定</strong>
+デフォルトでは、パーサーはテーブル名（レベル3ヘッダー）と説明をキャプチャします。<code>MultiTableParsingSchema</code> でこの動作をカスタマイズできます。</p>
+<pre><code class="language-python">from md_spreadsheet_parser import MultiTableParsingSchema
+
+schema = MultiTableParsingSchema(
+    table_header_level=3,     # ### Header をテーブル名として扱う
+    capture_description=True  # ヘッダーとテーブルの間のテキストをキャプチャ
+)
+# parse_workbook にスキーマを渡す...
+</code></pre>
+<h3 id="8">8. 高度な型変換</h3>
+<p><code>to_models()</code> に <code>ConversionSchema</code> を渡すことで、文字列値がPythonオブジェクトに変換される方法をカスタマイズできます。これは国際化 (I18N) やカスタム型の処理に役立ちます。</p>
+<p><strong>国際化 (I18N): カスタムブール値ペア</strong></p>
+<p>どの文字列ペアを <code>True</code>/<code>False</code> にマッピングするかを設定します（大文字小文字を区別しません）。</p>
+<pre><code class="language-python">from md_spreadsheet_parser import parse_table, ConversionSchema
+
+markdown = &quot;&quot;&quot;
+| User | Active? |
+| --- | --- |
+| Tanaka | はい |
+| Suzuki | いいえ |
+&quot;&quot;&quot;
+
+# &quot;はい&quot; -&gt; True, &quot;いいえ&quot; -&gt; False を設定、それにタスクリストも
+schema = ConversionSchema(
+    boolean_pairs=(
+        (&quot;はい&quot;, &quot;いいえ&quot;),
+        (&quot;[x]&quot;, &quot;[ ]&quot;)
+    )
+)
+
+users = parse_table(markdown).to_models(User, conversion_schema=schema)
+# Tanaka.active is True
+</code></pre>
+<p><strong>カスタム型コンバータ</strong></p>
+<p>特定の型のカスタム変換関数を登録します。以下を含む <strong>任意のPython型</strong> をキーとして使用できます：</p>
+<ul>
+<li><strong>組み込み</strong>: <code>int</code>, <code>float</code>, <code>bool</code> (デフォルト動作の上書き)</li>
+<li><strong>標準ライブラリ</strong>: <code>Decimal</code>, <code>datetime</code>, <code>date</code>, <code>ZoneInfo</code>, <code>UUID</code></li>
+<li><strong>カスタムクラス</strong>: 独自のデータクラスやオブジェクト</li>
+</ul>
+<p>標準ライブラリの型とカスタムクラスを使用した例：</p>
+<pre><code class="language-python">from dataclasses import dataclass
+from uuid import UUID
+from zoneinfo import ZoneInfo
+from md_spreadsheet_parser import ConversionSchema, parse_table
+
+@dataclass
+class Color:
+    r: int
+    g: int
+    b: int
+
+@dataclass
+class Config:
+    timezone: ZoneInfo
+    session_id: UUID
+    theme_color: Color
+
+markdown = &quot;&quot;&quot;
+| Timezone | Session ID | Theme Color |
+| --- | --- | --- |
+| Asia/Tokyo | 12345678-1234-5678-1234-567812345678 | 255,0,0 |
+&quot;&quot;&quot;
+
+schema = ConversionSchema(
+    custom_converters={
+        # 標準ライブラリ型
+        ZoneInfo: lambda v: ZoneInfo(v),
+        UUID: lambda v: UUID(v),
+        # カスタムクラス
+        Color: lambda v: Color(*map(int, v.split(&quot;,&quot;)))
+    }
+)
+
+data = parse_table(markdown).to_models(Config, conversion_schema=schema)
+# data[0].timezone is ZoneInfo(&quot;Asia/Tokyo&quot;)
+# data[0].theme_color is Color(255, 0, 0)
+</code></pre>
+<p><strong>フィールド固有のコンバータ</strong></p>
+<p>詳細な制御のために、特定のフィールド名に対するコンバータを定義でき、これらは型ベースのコンバータよりも優先されます。</p>
+<pre><code class="language-python">def parse_usd(val): ...
+def parse_jpy(val): ...
+
+schema = ConversionSchema(
+    # 型ベースのデフォルト (低優先度)
+    custom_converters={
+        Decimal: parse_usd 
+    },
+    # フィールド名のオーバーライド (高優先度)
+    field_converters={
+        &quot;price_jpy&quot;: parse_jpy,
+        &quot;created_at&quot;: lambda x: datetime.strptime(x, &quot;%Y/%m/%d&quot;)
+    }
+)
+
+# price_usd (オーバーライドなし) -&gt; custom_converters (parse_usd)
+# price_jpy (オーバーライド)    -&gt; field_converters (parse_jpy)
+data = parse_table(markdown).to_models(Product, conversion_schema=schema)
+</code></pre>
+<p><strong>標準コンバータライブラリ</strong></p>
+<p>一般的なパターン（通貨、リスト）については、独自に記述する代わりに、<code>md_spreadsheet_parser.converters</code> にある組み込みヘルパー関数を使用できます。</p>
+<pre><code class="language-python">from md_spreadsheet_parser.converters import (
+    to_decimal_clean,        # &quot;$1,000&quot;, &quot;¥500&quot; -&gt; Decimal
+    make_datetime_converter, # 解析/TZロジックのファクトリ
+    make_list_converter,     # &quot;a,b,c&quot; -&gt; [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
+    make_bool_converter      # カスタムの厳密なブール値セット
+)
+
+schema = ConversionSchema(
+    custom_converters={
+        # 通貨: $, ¥, €, £, カンマ, スペースを削除
+        Decimal: to_decimal_clean,
+        # DateTime: ISO形式デフォルト, ナイーブな場合はTokyo TZを付与
+        datetime: make_datetime_converter(tz=ZoneInfo(&quot;Asia/Tokyo&quot;)),
+        # リスト: カンマで分割, 空白を除去
+        list: make_list_converter(separator=&quot;,&quot;)
+    },
+    field_converters={
+        # 特定のフィールドに対するカスタムブール値
+        &quot;is_valid&quot;: make_bool_converter(true_values=[&quot;OK&quot;], false_values=[&quot;NG&quot;])
+    }
+)
+</code></pre>
+<h3 id="9">9. 堅牢性 (不正なテーブルの処理)</h3>
+<p>パーサーは、不完全なMarkdownテーブルを適切に処理するように設計されています。</p>
+<ul>
+<li><strong>列の欠落</strong>: ヘッダーよりも列が少ない行は、自動的に空文字列で <strong>パディング</strong> されます。</li>
+<li><strong>余分な列</strong>: ヘッダーよりも列が多い行は、自動的に <strong>切り捨て</strong> られます。</li>
+</ul>
+<pre><code class="language-python">from md_spreadsheet_parser import parse_table
+
+markdown = &quot;&quot;&quot;
+| A | B |
+|---|---|
+| 1 |       &lt;-- 列の欠落
+| 1 | 2 | 3 &lt;-- 余分な列
+&quot;&quot;&quot;
+
+table = parse_table(markdown)
+
+print(table.rows)
+# [['1', ''], ['1', '2']]
+</code></pre>
+<p>これにより、<code>table.rows</code> は常に <code>table.headers</code> の構造と一致することが保証され、反復や検証中のクラッシュを防ぎます。</p>
+<h3 id="10">10. セル内改行のサポート</h3>
+<p>パーサーは、HTMLの改行タグを自動的にPythonの改行 (<code>\n</code>) に変換します。これにより、複数行のセルを自然に扱うことができます。</p>
+<p><strong>サポートされているタグ (大文字小文字区別なし):</strong>
+- <code>&lt;br&gt;</code>
+- <code>&lt;br/&gt;</code>
+- <code>&lt;br /&gt;</code></p>
+<pre><code class="language-python">markdown = &quot;| Line1&lt;br&gt;Line2 |&quot;
+table = parse_table(markdown)
+# table.rows[0][0] == &quot;Line1\nLine2&quot;
+</code></pre>
+<p><strong>ラウンドトリップサポート:</strong>
+Markdownを生成する場合（例: <code>table.to_markdown()</code>）、Pythonの改行 (<code>\n</code>) は、テーブル構造を維持するために自動的に <code>&lt;br&gt;</code> タグに変換されます。</p>
+<p>これを無効にするには、<code>ParsingSchema</code> で <code>convert_br_to_newline=False</code> を設定します。</p>
+<h3 id="11-api">11. パフォーマンスとスケーラビリティ (ストリーミングAPI)</h3>
+<p><strong>本当に10GBのMarkdownファイルがありますか？</strong></p>
+<p>おそらくないでしょう。そうでないことを心から願っています。Markdownはそのために作られたものではありません。</p>
+<p>しかし <em>万が一ある場合</em> —たとえば、膨大なログを生成していたり、標準コンバータの監査を行っている場合—このライブラリはあなたをサポートします。Excelが1,048,576行で諦める一方で、<code>md-spreadsheet-parser</code> は <strong>無制限のサイズ</strong> のファイルに対するストリーミング処理をサポートし、メモリ使用量を一定に保ちます。</p>
+<p><strong>scan_tables_iter</strong>:
+この関数はファイルを行ごとに読み込み、<code>Table</code> オブジェクトが見つかるたびにyieldします。ファイル全体をメモリに読み込むことは <strong>ありません</strong>。</p>
+<pre><code class="language-python">from md_spreadsheet_parser import scan_tables_iter
+
+# 巨大なログファイルを処理 (例: 10GB)
+# メモリ使用量は低いまま (単一のテーブルブロックのサイズのみ)
+for table in scan_tables_iter(&quot;huge_server_log.md&quot;):
+    print(f&quot;Found table with {len(table.rows)} rows&quot;)
+
+    # 行の処理...
+    for row in table.rows:
+        pass
+</code></pre>
+<p>これは、データパイプライン、ログ分析、および標準的なスプレッドシートエディタで開くには大きすぎるエクスポートの処理に最適です。</p>
+<h3 id="12">12. プログラムによる操作</h3>
+<p>このライブラリは、データ構造を変更するための不変メソッドを提供します。これらのメソッドは、変更が適用された <strong>新しいインスタンス</strong> を返し、元のオブジェクトは変更しません。</p>
+<p><strong>ワークブック操作</strong></p>
+<pre><code class="language-python"># 新しいシートの追加 (ヘッダーA, B, Cを持つデフォルトテーブルを作成)
+new_wb = workbook.add_sheet(&quot;New Sheet&quot;)
+
+# シート名の変更
+new_wb = workbook.rename_sheet(sheet_index=0, new_name(&quot;Budget 2024&quot;))
+
+# シートの削除
+new_wb = workbook.delete_sheet(sheet_index=1)
+</code></pre>
+<p><strong>シート操作</strong></p>
+<pre><code class="language-python"># シート名の変更 (直接メソッド)
+new_sheet = sheet.rename(&quot;Q1 Data&quot;)
+
+# テーブルメタデータの更新
+new_sheet = sheet.update_table_metadata(
+    table_index=0, 
+    name=&quot;Expenses&quot;, 
+    description=&quot;Monthly expense report&quot;
+)
+</code></pre>
+<p><strong>テーブル操作</strong></p>
+<pre><code class="language-python"># セルの更新 (インデックスが範囲外の場合、自動的にテーブルを拡張)
+new_table = table.update_cell(row_idx=5, col_idx=2, value=&quot;Updated&quot;)
+
+# 行の削除 (構造的な削除)
+new_table = table.delete_row(row_idx=2)
+
+# 列データのクリア (ヘッダーと行構造は保持し、セルを空にする)
+new_table = table.clear_column_data(col_idx=3)
+</code></pre>
+<h3 id="13">13. ビジュアルメタデータの永続化</h3>
+<p>このライブラリは、Markdownテーブルの構造自体を変更することなく、ビジュアル状態（列幅やフィルタ設定など）を永続化することをサポートしています。これは、テーブルの後に追加される隠しHTMLコメントによって実現されます。</p>
+<pre><code class="language-markdown">| A | B |
+|---|---|
+| 1 | 2 |
+
+&lt;!-- md-spreadsheet-table-metadata: {&quot;columnWidths&quot;: [100, 200]} --&gt;
+</code></pre>
+<p>これにより、以下のことが保証されます：
+1.  <strong>クリーンなデータ</strong>: テーブルは標準的なMarkdownのままであり、どのレンダラーでも読み取ることができます。
+2.  <strong>リッチな状態</strong>: 互換性のあるツール（私たちが提供するVS Code拡張機能など）は、このコメントを読み取ってUIの状態（列幅、非表示列など）を復元できます。
+3.  <strong>堅牢性</strong>: パーサーは、空行で区切られていても、このメタデータを直前のテーブルに自動的に関連付けます。</p>
+<h3 id="cli">コマンドラインインターフェース (CLI)</h3>
+<p><code>md-spreadsheet-parser</code> コマンドを使用してMarkdownファイルを解析し、JSONを出力できます。これは、データを他のツールにパイプ処理する場合に便利です。</p>
+<pre><code class="language-bash"># ファイルから読み込む
+md-spreadsheet-parser input.md
+
+# 標準入力（パイプ）から読み込む
+cat input.md | md-spreadsheet-parser
+</code></pre>
+<p><strong>オプション:</strong>
+- <code>--scan</code>: ワークブック構造を無視してすべてのテーブルをスキャンします（テーブルのリストを返します）。
+- <code>--root-marker</code>: ルートマーカーを明示的に設定します（デフォルト: 自動検出）。
+- <code>--sheet-header-level</code>: シートのヘッダーレベルを設定します（デフォルト: 2）。
+- <code>--table-header-level</code>: テーブルのヘッダーレベルを設定します（デフォルト: 3）。
+- <code>--capture-description</code>: テーブルの説明をキャプチャします（デフォルト: True）。
+- <code>--column-separator</code>: 列の区切りに使用する文字（デフォルト: <code>|</code>）。
+- <code>--header-separator-char</code>: 区切り行で使用する文字（デフォルト: <code>-</code>）。
+- <code>--no-outer-pipes</code>: 外側のパイプがないテーブルを許可します（デフォルト: False）。
+- <code>--no-strip-whitespace</code>: セルの値から空白を除去しません（デフォルト: False）。
+- <code>--no-br-conversion</code>: <code>&lt;br&gt;</code> タグの改行への自動変換を無効にします（デフォルト: False）。</p>
+<h2 id="configuration">設定 (Configuration)</h2>
+<p><code>ParsingSchema</code> と <code>MultiTableParsingSchema</code> を使用して、解析動作をカスタマイズできます。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">オプション</th>
+<th style="text-align: left;">デフォルト</th>
+<th style="text-align: left;">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>column_separator</code></td>
+<td style="text-align: left;"><code>\|</code></td>
+<td style="text-align: left;">列の区切りに使用する文字。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>header_separator_char</code></td>
+<td style="text-align: left;"><code>-</code></td>
+<td style="text-align: left;">区切り行で使用する文字。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>require_outer_pipes</code></td>
+<td style="text-align: left;"><code>True</code></td>
+<td style="text-align: left;"><code>True</code> の場合、生成されるMarkdownテーブルに外側のパイプが含まれます。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>strip_whitespace</code></td>
+<td style="text-align: left;"><code>True</code></td>
+<td style="text-align: left;"><code>True</code> の場合、セルの値から空白が除去されます。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>convert_br_to_newline</code></td>
+<td style="text-align: left;"><code>True</code></td>
+<td style="text-align: left;"><code>True</code> の場合、<code>&lt;br&gt;</code> タグは <code>\n</code> に変換されます（逆も同様）。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>root_marker</code></td>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;">(MultiTable) データセクションの開始を示すマーカー。デフォルトは自動検出。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sheet_header_level</code></td>
+<td style="text-align: left;"><code>2</code></td>
+<td style="text-align: left;">(MultiTable) シートのヘッダーレベル。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>table_header_level</code></td>
+<td style="text-align: left;"><code>3</code></td>
+<td style="text-align: left;">(MultiTable) テーブルのヘッダーレベル。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>capture_description</code></td>
+<td style="text-align: left;"><code>True</code></td>
+<td style="text-align: left;">(MultiTable) ヘッダーとテーブルの間のテキストをキャプチャします。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ecosystem">エコシステム (Ecosystem)</h2>
+<p>このパーサーは、新しいエコシステムである <strong>テキストベースの表計算管理</strong> の中核となる基盤です。</p>
+<p>Markdownファイルの完全なGUIスプレッドシートエディタとして機能する <strong><a href="https://marketplace.visualstudio.com/items?itemName=f-y.peng-sheets">PengSheets</a></strong> を提供しています。</p>
+<p><strong>ビジョン: "ExcelのようなUX、Gitネイティブなデータ"</strong>
+高パフォーマンスなエディタとこの堅牢なパーサーを組み合わせることで、ソフトウェアプロジェクトにおけるバイナリスプレッドシートファイルの管理という長年の問題を解決することを目指しています。
+*   <strong>人間のために</strong>: 快適で馴染みのあるUI（セルの書式設定、改善されたナビゲーション、視覚的なフィードバック）でデータを編集できます。
+*   <strong>マシンのために</strong>: データはクリーンで差分可能なMarkdownとして保存され、このライブラリが瞬時に解析、検証、Pythonオブジェクトへの変換を行います。</p>
+<h2 id="_5">ライセンス</h2>
+<p>このプロジェクトは <a href="https://github.com/f-y/md-spreadsheet-parser/blob/main/LICENSE">MIT License</a> の下でライセンスされています。</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="最終更新日">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="2026年2月27日 20:22:36 JST">2026-02-27</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="作成日">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="2026年2月27日 20:22:36 JST">2026-02-27</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f", "clipboard.copy": "\u30af\u30ea\u30c3\u30d7\u30dc\u30fc\u30c9\u3078\u30b3\u30d4\u30fc", "search.result.more.one": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3082\u30461\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.more.other": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3042\u3068#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.none": "\u4f55\u3082\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f", "search.result.one": "1\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.other": "#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.placeholder": "\u691c\u7d22\u30ad\u30fc\u30ef\u30fc\u30c9\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044", "search.result.term.missing": "\u691c\u7d22\u306b\u542b\u307e\u308c\u306a\u3044", "select.version": "\u30d0\u30fc\u30b8\u30e7\u30f3\u5207\u308a\u66ff\u3048"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

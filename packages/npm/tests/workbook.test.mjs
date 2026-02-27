@@ -254,12 +254,36 @@ custom:
         // Assert title became name
         assert(dendronWb.name === "2026-02-25", "Dendron title to Workbook name");
 
-        // Assert metadata parsed securely
+        // Assert metadata uses frontmatter isolation
         assertMetadataIsObject(dendronWb.metadata, "Dendron metadata is native object");
-        assert(dendronWb.metadata["id"] === "1234567890abc", "Dendron metadata string");
-        assert(dendronWb.metadata["updated"] === 1708851375000, "Dendron metadata int");
-        assertArrayEqual(dendronWb.metadata["tags"], ["daily", "journal"], "Dendron metadata array");
-        assertEqual(dendronWb.metadata["custom"], { weather: "sunny", mood: 5 }, "Dendron metadata nested dict");
+        assert(dendronWb.metadata["header_type"] === "frontmatter", "header_type should be frontmatter");
+        const fm = dendronWb.metadata["frontmatter"];
+        assertNotNull(fm, "frontmatter sub-dict");
+        assert(fm["id"] === "1234567890abc", "Dendron frontmatter string");
+        assert(fm["updated"] === 1708851375000, "Dendron frontmatter int");
+        assertArrayEqual(fm["tags"], ["daily", "journal"], "Dendron frontmatter array");
+        assertEqual(fm["custom"], { weather: "sunny", mood: 5 }, "Dendron frontmatter nested dict");
+
+        // ============================================================
+        // Test: Frontmatter Round-trip (parse → toMarkdown → text match)
+        // ============================================================
+        const roundtripOriginal = [
+            "---",
+            "title: My Workbook",
+            "description: A test workbook",
+            "version: 2",
+            "---",
+            "",
+            "## Sheet 1",
+            "",
+            "| Col A | Col B |",
+            "| --- | --- |",
+            "| 1 | 2 |",
+        ].join("\n");
+        const roundtripWb = parseWorkbook(roundtripOriginal);
+        const regenerated = roundtripWb.toMarkdown();
+        assert(regenerated === roundtripOriginal,
+            `Frontmatter round-trip mismatch.\nExpected:\n${roundtripOriginal}\nGot:\n${regenerated}`);
 
         console.log("   ✅ Workbook tests verified");
     } catch (e) {

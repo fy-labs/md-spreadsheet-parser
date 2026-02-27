@@ -312,3 +312,105 @@ def _parse_scalar(val: str) -> Any:
         pass
 
     return val
+
+
+def _serialize_yaml_value(value: Any, indent: int = 0) -> str:
+    """Serialize a Python value to a YAML string fragment."""
+    prefix = "  " * indent
+
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    elif isinstance(value, int):
+        return str(value)
+    elif isinstance(value, float):
+        return str(value)
+    elif isinstance(value, str):
+        # Quote strings that could be ambiguous
+        if (
+            value.lower() in ("true", "false", "null", "~", "")
+            or value != value.strip()
+            or any(
+                c in value
+                for c in (
+                    ":",
+                    "#",
+                    "{",
+                    "}",
+                    "[",
+                    "]",
+                    ",",
+                    "&",
+                    "*",
+                    "?",
+                    "|",
+                    "-",
+                    "<",
+                    ">",
+                    "=",
+                    "!",
+                    "%",
+                    "@",
+                    "`",
+                )
+            )
+        ):
+            # Use double quotes, escaping internal double quotes
+            escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+            return f'"{escaped}"'
+        return value
+    elif isinstance(value, list):
+        if not value:
+            return "[]"
+        lines = []
+        for item in value:
+            serialized = _serialize_yaml_value(item, indent + 1)
+            if isinstance(item, dict):
+                # Nested dict in list: first key on same line as dash
+                dict_lines = _serialize_yaml_dict_lines(item, indent + 1)
+                if dict_lines:
+                    lines.append(f"{prefix}- {dict_lines[0].lstrip()}")
+                    lines.extend(dict_lines[1:])
+            else:
+                lines.append(f"{prefix}- {serialized}")
+        return "\n" + "\n".join(lines)
+    elif isinstance(value, dict):
+        if not value:
+            return "{}"
+        dict_lines = _serialize_yaml_dict_lines(value, indent)
+        return "\n" + "\n".join(dict_lines)
+    else:
+        return str(value)
+
+
+def _serialize_yaml_dict_lines(data: dict[str, Any], indent: int) -> list[str]:
+    """Serialize a dict to a list of YAML lines with proper indentation."""
+    prefix = "  " * indent
+    lines: list[str] = []
+    for key, val in data.items():
+        serialized = _serialize_yaml_value(val, indent + 1)
+        if isinstance(val, (dict, list)) and val:
+            # Complex value: key on its own line, value indented below
+            lines.append(f"{prefix}{key}:{serialized}")
+        else:
+            lines.append(f"{prefix}{key}: {serialized}")
+    return lines
+
+
+def generate_yaml_frontmatter(data: dict[str, Any]) -> str:
+    """Generate a YAML frontmatter block from a dictionary.
+
+    Args:
+        data: Dictionary to serialize as YAML frontmatter.
+
+    Returns:
+        str: The complete frontmatter block including --- delimiters.
+    """
+    lines = ["---"]
+    for key, value in data.items():
+        serialized = _serialize_yaml_value(value, indent=1)
+        if isinstance(value, (dict, list)) and value:
+            lines.append(f"{key}:{serialized}")
+        else:
+            lines.append(f"{key}: {serialized}")
+    lines.append("---")
+    return "\n".join(lines)

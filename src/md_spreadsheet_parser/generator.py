@@ -2,6 +2,7 @@ import json
 from typing import TYPE_CHECKING
 
 from .schemas import DEFAULT_SCHEMA, MultiTableParsingSchema, ParsingSchema
+from .yaml_parser import generate_yaml_frontmatter
 
 if TYPE_CHECKING:
     from .models import Sheet, Table, Workbook
@@ -141,6 +142,11 @@ def generate_sheet_markdown(
     return "\n".join(lines)
 
 
+# Keys in workbook.metadata that are used for round-trip control
+# and should not be serialized into the HTML comment
+_METADATA_INTERNAL_KEYS = {"header_type", "frontmatter"}
+
+
 def generate_workbook_markdown(
     workbook: "Workbook", schema: MultiTableParsingSchema
 ) -> str:
@@ -155,9 +161,16 @@ def generate_workbook_markdown(
         str: The Markdown string.
     """
     lines = []
+    metadata = workbook.metadata or {}
+    is_frontmatter = metadata.get("header_type") == "frontmatter"
 
-    # Use workbook.name for root marker, or explicit schema.root_marker
-    if schema.root_marker:
+    if is_frontmatter:
+        # Output YAML frontmatter block
+        frontmatter_data = metadata.get("frontmatter", {})
+        if frontmatter_data:
+            lines.append(generate_yaml_frontmatter(frontmatter_data))
+            lines.append("")
+    elif schema.root_marker:
         lines.append(schema.root_marker)
         lines.append("")
     else:
@@ -177,13 +190,16 @@ def generate_workbook_markdown(
         if i < len(workbook.sheets) - 1:
             lines.append("")  # Empty line between sheets
 
-    # Append Workbook Metadata if present
-    if workbook.metadata:
+    # Append Workbook Metadata if present (excluding internal keys)
+    comment_metadata = {
+        k: v for k, v in metadata.items() if k not in _METADATA_INTERNAL_KEYS
+    }
+    if comment_metadata:
         # Ensure separation from last sheet
         if lines and lines[-1] != "":
             lines.append("")
 
-        metadata_json = json.dumps(workbook.metadata, ensure_ascii=False)
+        metadata_json = json.dumps(comment_metadata, ensure_ascii=False)
         comment = f"<!-- md-spreadsheet-workbook-metadata: {metadata_json} -->"
         lines.append(comment)
 

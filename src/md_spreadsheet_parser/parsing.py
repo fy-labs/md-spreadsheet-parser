@@ -523,11 +523,12 @@ def parse_workbook(
 
     lines = filtered_lines
 
-    # Merge frontmatter metadata (takes precedence over comment metadata)
+    # Isolate frontmatter in sub-dict for round-trip fidelity
     if frontmatter_metadata:
         if metadata is None:
             metadata = {}
-        metadata.update(frontmatter_metadata)
+        metadata["header_type"] = "frontmatter"
+        metadata["frontmatter"] = frontmatter_metadata
 
     # Determine root marker and header levels
     root_marker = schema.root_marker

@@ -1,0 +1,5 @@
+## [1.4.1] - 2026-02-27
+
+### 🐛 Bug Fixes
+
+YAML frontmatter is now preserved during round-trip (parse → generate → re-parse). Frontmatter data is stored in `metadata["frontmatter"]` sub-dict with `metadata["header_type"]` set to `"frontmatter"`, enabling accurate regeneration of the original format.

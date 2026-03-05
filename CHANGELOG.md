@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.3] - 2026-03-05
+
+### 🐛 Bug Fixes
+
+Fix `to_markdown` producing double spaces for empty cells (`|  |` → `| |`).
+
 ## [1.4.2] - 2026-02-27
 
 ### 🐛 Bug Fixes

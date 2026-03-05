@@ -127,3 +127,35 @@ def test_table_to_markdown_default_schema():
 | 1 |"""
 
     assert markdown.strip() == expected.strip()
+
+
+def test_table_to_markdown_empty_cells():
+    """Empty cells should produce single space between pipes, not double."""
+    table = Table(
+        headers=["Column 1", "Column 2", "Column 3"],
+        rows=[["", "", ""]],
+    )
+    schema = ParsingSchema(require_outer_pipes=True)
+    markdown = table.to_markdown(schema)
+
+    expected = """| Column 1 | Column 2 | Column 3 |
+| --- | --- | --- |
+| | | |"""
+
+    assert markdown.strip() == expected.strip()
+
+
+def test_table_to_markdown_mixed_empty_and_nonempty_cells():
+    """Rows with a mix of empty and non-empty cells."""
+    table = Table(
+        headers=["A", "B", "C"],
+        rows=[["hello", "", "world"]],
+    )
+    schema = ParsingSchema(require_outer_pipes=True)
+    markdown = table.to_markdown(schema)
+
+    expected = """| A | B | C |
+| --- | --- | --- |
+| hello | | world |"""
+
+    assert markdown.strip() == expected.strip()

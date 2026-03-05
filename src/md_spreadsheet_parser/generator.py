@@ -36,7 +36,7 @@ def generate_table_markdown(
 
     # Build table
 
-    sep = f" {schema.column_separator or '|'} "
+    pipe = schema.column_separator or "|"
 
     def _prepare_cell(cell: str) -> str:
         """Prepare cell for markdown generation."""
@@ -44,14 +44,24 @@ def generate_table_markdown(
             return cell.replace("\n", "<br>")
         return cell
 
+    def _format_cell(cell: str) -> str:
+        """Format cell with surrounding spaces. Empty cells get single space."""
+        if cell:
+            return f" {cell} "
+        return " "
+
+    def _build_row(cells: list[str]) -> str:
+        """Build a pipe-delimited row from formatted cells."""
+        formatted = [_format_cell(c) for c in cells]
+        row_str = pipe.join(formatted)
+        if schema.require_outer_pipes:
+            row_str = f"{pipe}{row_str}{pipe}"
+        return row_str
+
     # Headers
     if table.headers:
-        # Add outer pipes if required
         processed_headers = [_prepare_cell(h) for h in table.headers]
-        header_row = sep.join(processed_headers)
-        if schema.require_outer_pipes:
-            header_row = f"{schema.column_separator or '|'} {header_row} {schema.column_separator or '|'}"
-        lines.append(header_row)
+        lines.append(_build_row(processed_headers))
 
         # Separator row
         separator_cells = []
@@ -76,18 +86,12 @@ def generate_table_markdown(
 
             separator_cells.append(cell)
 
-        separator_row = sep.join(separator_cells)
-        if schema.require_outer_pipes:
-            separator_row = f"{schema.column_separator or '|'} {separator_row} {schema.column_separator or '|'}"
-        lines.append(separator_row)
+        lines.append(_build_row(separator_cells))
 
     # Rows
     for row in table.rows:
         processed_row = [_prepare_cell(cell) for cell in row]
-        row_str = sep.join(processed_row)
-        if schema.require_outer_pipes:
-            row_str = f"{schema.column_separator or '|'} {row_str} {schema.column_separator or '|'}"
-        lines.append(row_str)
+        lines.append(_build_row(processed_row))
 
     # Append Metadata if present
     if table.metadata and "visual" in table.metadata:

@@ -20,6 +20,10 @@
 </p>
 
 <p align="center">
+  | <a href="https://github.com/f-y/md-spreadsheet-parser/blob/main/README.md">English</a> | 日本語 |
+</p>
+
+<p align="center">
   <strong>Markdownテーブル操作に特化したPythonライブラリ。ExcelからMarkdownへの変換、テーブルの解析、型安全な検証など。堅牢で依存関係ゼロ</strong>
 </p>
 
@@ -34,10 +38,6 @@
 > [![Get it on VS Code Marketplace](https://img.shields.io/badge/VS%20Code%20Marketplace-%E3%81%A7%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=f-y.peng-sheets)
 
 🚀 **すぐに使いたいですか？** [Cookbook](https://github.com/f-y/md-spreadsheet-parser/blob/main/COOKBOOK.ja.md) には、コピー＆ペーストで使えるレシピ（Excel変換、Pandas連携、Markdownテーブル操作など）が満載です。
-
-<p align="center">
-  | <a href="https://github.com/f-y/md-spreadsheet-parser/blob/main/README.md">English</a> | 日本語 |
-</p>
 
 ## 目次
 

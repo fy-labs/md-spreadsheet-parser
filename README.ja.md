@@ -35,6 +35,10 @@
 
 🚀 **すぐに使いたいですか？** [Cookbook](https://github.com/f-y/md-spreadsheet-parser/blob/main/COOKBOOK.ja.md) には、コピー＆ペーストで使えるレシピ（Excel変換、Pandas連携、Markdownテーブル操作など）が満載です。
 
+<p align="center">
+  | <a href="https://github.com/f-y/md-spreadsheet-parser/blob/main/README.md">English</a> | 日本語 |
+</p>
+
 ## 目次
 
 - [機能](#機能)

@@ -1,5 +1,9 @@
 # レシピ集
 
+<p align="center">
+  | <a href="https://github.com/f-y/md-spreadsheet-parser/blob/main/COOKBOOK.md">English</a> | 日本語 |
+</p>
+
 このガイドでは、一般的なタスクに対する即座の解決策を提供します。
 
 ## 目次

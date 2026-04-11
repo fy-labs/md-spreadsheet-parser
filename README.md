@@ -20,6 +20,10 @@
 </p>
 
 <p align="center">
+  | English | <a href="https://github.com/f-y/md-spreadsheet-parser/blob/main/README.ja.md">日本語</a> |
+</p>
+
+<p align="center">
   <strong>A robust, zero-dependency Python library for converting Excel to Markdown, parsing tables, and type-safe validation.</strong>
 </p>
 
@@ -34,10 +38,6 @@
 > [![Get it on VS Code Marketplace](https://img.shields.io/badge/Get%20it%20on-VS%20Code%20Marketplace-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=f-y.peng-sheets)
 
 🚀 **Need a quick solution?** Check out the [Cookbook](https://github.com/f-y/md-spreadsheet-parser/blob/main/COOKBOOK.md) for copy-pasteable recipes (Excel conversion, Pandas integration, Markdown table manipulation, and more).
-
-Read in Japanese: 日本語版はこちら(
-<a href="https://github.com/f-y/md-spreadsheet-parser/blob/main/README.ja.md">README</a>, <a href="https://github.com/f-y/md-spreadsheet-parser/blob/main/COOKBOOK.ja.md">Cookbook</a>
-)
 
 ## Table of Contents
 

@@ -20,6 +20,10 @@
 </p>
 
 <p align="center">
+  | <a href="https://github.com/f-y/md-spreadsheet-parser/blob/main/README.md">English</a> | 日本語 |
+</p>
+
+<p align="center">
   <strong>Markdownテーブル操作に特化したPythonライブラリ。ExcelからMarkdownへの変換、テーブルの解析、型安全な検証など。堅牢で依存関係ゼロ</strong>
 </p>
 

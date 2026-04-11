@@ -1,5 +1,9 @@
 # Cookbook
 
+<p align="center">
+  | English | <a href="https://github.com/f-y/md-spreadsheet-parser/blob/main/COOKBOOK.ja.md">日本語</a> |
+</p>
+
 This guide provides immediate solutions for common tasks.
 
 ## Table of Contents
